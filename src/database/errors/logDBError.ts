@@ -1,7 +1,7 @@
 import type { DatabaseError } from "pg";
 
 export function logDBError(err: DatabaseError) {
-  console.log({
+  console.error({
     code: err.code,
     constraint: err.constraint,
     column: err.column,

@@ -14,7 +14,6 @@ app.use(errorMiddleware);
 
 async function startApp() {
   console.log("Starting server...");
-  console.log(`PORT: ${PORT}`);
 
   try {
     await pool.query("SELECT 1");

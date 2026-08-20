@@ -7,7 +7,6 @@ import type { CreateUserInput, User } from "./user.schema.js";
 class UserRepository {
   async create(validUser: CreateUserInput) {
     try {
-      console.log(validUser.password);
       const result = await pool.query<User>(
         `INSERT INTO users (name, username, email) 
             VALUES ($1, $2, $3)
@@ -19,6 +18,7 @@ class UserRepository {
       return user;
     } catch (err) {
       if (err instanceof DatabaseError) throw translateDBError(err, "user");
+      throw err;
     }
   }
 }

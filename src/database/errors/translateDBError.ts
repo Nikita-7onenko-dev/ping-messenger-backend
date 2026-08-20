@@ -19,7 +19,7 @@ export function translateDBError(err: DatabaseError, resource: string) {
       );
     }
     default: {
-      console.log(err);
+      logDBError(err);
       return ApiError.internal("Internal: database error");
     }
   }
