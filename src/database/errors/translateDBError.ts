@@ -1,12 +1,13 @@
-import type { DatabaseError } from "pg";
+import { DatabaseError } from "pg";
 import { ApiError } from "@/exceptions/ApiError.js";
 
 import { handleUniqueViolation } from "./handlers/handleUniqueViolation.js";
 import { handleNotNullViolation } from "./handlers/handleNotNullViolation.js";
-
 import { logDBError } from "./logDBError.js";
 
-export function translateDBError(err: DatabaseError, resource: string) {
+export function translateDBError(err: unknown, resource: string) {
+  if (!(err instanceof DatabaseError)) throw err;
+
   switch (err.code) {
     case "23505":
       return handleUniqueViolation(err, resource);

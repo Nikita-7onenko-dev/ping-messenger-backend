@@ -9,15 +9,6 @@ export const createUserSchema = z.object({
     .min(8, { error: "Password must be at least 8 characters long" }),
 });
 
-export type CreateUserInput = z.infer<typeof createUserSchema>;
-
-export type User = {
-  id: string;
-  name: string;
-  username: string;
-  email: string;
-};
-
 export function validateUser(reqBody: unknown) {
   return createUserSchema.parse(reqBody);
 }

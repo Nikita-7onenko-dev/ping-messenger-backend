@@ -1,6 +1,7 @@
 import { validateUser } from "./user.schema.js";
 import bcrypt from "bcrypt";
 import { userRepository } from "./user.repository.js";
+import { ApiError } from "@/exceptions/ApiError.js";
 
 class UserService {
   async create(reqBody: unknown) {
@@ -10,6 +11,14 @@ class UserService {
       ...validUser,
       password: hash,
     });
+    return user;
+  }
+
+  async getByUsername(username: string) {
+    const user = await userRepository.getByUsername(username);
+    if (!user) {
+      throw ApiError.notFound("User not found");
+    }
     return user;
   }
 }
