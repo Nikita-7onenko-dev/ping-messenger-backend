@@ -1,4 +1,7 @@
-import { pool } from "../database/database.config.js";
+import { DatabaseError } from "pg";
+import { pool } from "@/database/database.config.js";
+import { translateDBError } from "@/database/errors/translateDBError.js";
+
 import type { CreateUserInput, User } from "./user.schema.js";
 
 class UserRepository {
@@ -15,7 +18,7 @@ class UserRepository {
       const [user] = rows;
       return user;
     } catch (err) {
-      console.log(err);
+      if (err instanceof DatabaseError) throw translateDBError(err, "user");
     }
   }
 }
