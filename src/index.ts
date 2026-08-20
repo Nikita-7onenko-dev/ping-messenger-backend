@@ -1,10 +1,12 @@
 import express from "express";
 import { pool } from "./database/database.config.js";
+import { userRouter } from "./users/user.router.js";
 
 const PORT = process.env.PORT || 5000;
 const app = express();
 app.use(express.json());
 
+app.use("/users", userRouter);
 app.get("/ping", (_, res) => res.json({ message: "pong" }));
 
 async function startApp() {
