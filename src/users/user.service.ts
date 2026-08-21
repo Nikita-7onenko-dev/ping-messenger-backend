@@ -4,7 +4,7 @@ import { userRepository } from "./user.repository.js";
 import { ApiError } from "@/exceptions/ApiError.js";
 
 class UserService {
-  async create(reqBody: unknown) {
+  async register(reqBody: unknown) {
     const validUser = validateUser(reqBody)!;
     const hash = await bcrypt.hash(validUser.password, 12);
     const user = await userRepository.create({
@@ -20,6 +20,13 @@ class UserService {
       throw ApiError.notFound("User not found");
     }
     return user;
+  }
+
+  async deleteMe(id: string) {
+    const deletedId = await userRepository.deleteById(id);
+    if (!deletedId) {
+      throw ApiError.notFound("User not found");
+    }
   }
 }
 
