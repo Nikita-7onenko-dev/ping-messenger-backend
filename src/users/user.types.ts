@@ -1,7 +1,12 @@
 import { z } from "zod";
 import type { createUserSchema } from "./user.schema.js";
 
-export type CreateUserInput = z.infer<typeof createUserSchema>;
+export type CreateUserInput = Omit<
+  z.infer<typeof createUserSchema>,
+  "password"
+> & {
+  passwordHash: string;
+};
 
 export type User = {
   id: string;

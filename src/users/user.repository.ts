@@ -1,22 +1,42 @@
-import { DatabaseError } from "pg";
 import { pool } from "@/database/database.config.js";
 import { translateDBError } from "@/database/errors/translateDBError.js";
 
 import type { CreateUserInput, PublicUser, User } from "./user.types.js";
+import { ApiError } from "@/exceptions/ApiError.js";
 
 class UserRepository {
-  async create(validUser: CreateUserInput) {
+  async create(userInput: CreateUserInput) {
+    const client = await pool.connect();
     try {
-      const result = await pool.query<User>(
+      await client.query("BEGIN");
+
+      const result = await client.query<User>(
         `INSERT INTO users (name, username, email) 
             VALUES ($1, $2, $3)
             RETURNING id, name, username, email`,
-        [validUser.name, validUser.username, validUser.email],
+        [userInput.name, userInput.username, userInput.email],
       );
       const [user] = result.rows;
+
+      if (!user) {
+        throw ApiError.internal("Failed to create user");
+      }
+
+      await client.query(
+        `INSERT INTO user_credentials (user_id, password_hash)
+          VALUES ($1, $2)
+        `,
+        [user.id, userInput.passwordHash],
+      );
+
+      await client.query("COMMIT");
+
       return user;
     } catch (err) {
+      await client.query("ROLLBACK");
       throw translateDBError(err, "user");
+    } finally {
+      client.release();
     }
   }
 

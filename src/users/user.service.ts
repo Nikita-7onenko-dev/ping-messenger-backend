@@ -5,11 +5,13 @@ import { ApiError } from "@/exceptions/ApiError.js";
 
 class UserService {
   async register(reqBody: unknown) {
-    const validUser = validateUser(reqBody)!;
-    const hash = await bcrypt.hash(validUser.password, 12);
+    const userInput = validateUser(reqBody)!;
+    const hash = await bcrypt.hash(userInput.password, 12);
     const user = await userRepository.create({
-      ...validUser,
-      password: hash,
+      name: userInput.name,
+      username: userInput.username,
+      email: userInput.email,
+      passwordHash: hash,
     });
     return user;
   }
