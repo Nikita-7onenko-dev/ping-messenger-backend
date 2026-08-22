@@ -2,18 +2,29 @@ import { validateUser } from "./user.schema.js";
 import bcrypt from "bcrypt";
 import { userRepository } from "./user.repository.js";
 import { ApiError } from "@/exceptions/ApiError.js";
+import { tokenService } from "@/token/token.service.js";
 
 class UserService {
   async register(reqBody: unknown) {
-    const userInput = validateUser(reqBody)!;
+    const userInput = validateUser(reqBody);
     const hash = await bcrypt.hash(userInput.password, 12);
+
+    const refreshToken = tokenService.generateRefreshToken();
+    const refreshTokenHash = tokenService.hashRefreshToken(refreshToken);
+    const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+
     const user = await userRepository.create({
       name: userInput.name,
       username: userInput.username,
       email: userInput.email,
       passwordHash: hash,
+      refreshTokenHash,
+      expiresAt,
     });
-    return user;
+
+    const accessToken = tokenService.generateAccessToken({ userId: user.id });
+
+    return { user, refreshToken, accessToken };
   }
 
   async getByUsername(username: string) {

@@ -1,11 +1,11 @@
 import { pool } from "@/database/database.config.js";
 import { translateDBError } from "@/database/errors/translateDBError.js";
 
-import type { CreateUserInput, PublicUser, User } from "./user.types.js";
+import type { UserInput, PublicUser, User } from "./user.types.js";
 import { ApiError } from "@/exceptions/ApiError.js";
 
 class UserRepository {
-  async create(userInput: CreateUserInput) {
+  async create(userInput: UserInput) {
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
@@ -27,6 +27,13 @@ class UserRepository {
           VALUES ($1, $2)
         `,
         [user.id, userInput.passwordHash],
+      );
+
+      await client.query(
+        `INSERT INTO user_sessions (user_id, refresh_token_hash, expires_at)
+          VALUES ($1, $2, $3)
+        `,
+        [user.id, userInput.refreshTokenHash, userInput.expiresAt],
       );
 
       await client.query("COMMIT");

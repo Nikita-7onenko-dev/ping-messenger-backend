@@ -1,10 +1,30 @@
 import type { Request, Response } from "express";
 import { userService } from "./user.service.js";
 import { ApiError } from "@/exceptions/ApiError.js";
+import { generateRandomToken } from "@/utils/generateRandomToken.js";
+
+const isProd = process.env.IS_PROD === "true";
 
 class UserController {
   async register(req: Request, res: Response) {
-    const user = await userService.register(req.body);
+    const { refreshToken, accessToken, user } = await userService.register(
+      req.body,
+    );
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+    });
+
+    const csrfToken = generateRandomToken();
+    res.cookie("csrfToken", csrfToken, {
+      httpOnly: false,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+    });
+
+    res.setHeader("Authorization", `Bearer ${accessToken}`);
     res.status(201).json(user);
   }
 
@@ -24,7 +44,7 @@ class UserController {
   }
 
   async deleteMe(req: Request, res: Response) {
-    const id = req.body.userId;
+    const id = req.userId;
 
     if (!id || typeof id !== "string") {
       throw ApiError.unauthorized("Unauthorized");

@@ -2,10 +2,20 @@ import express from "express";
 import { pool } from "./database/database.config.js";
 import { userRouter } from "./users/user.router.js";
 import { errorMiddleware } from "./middleware/errorMiddleware.js";
+import cors from "cors";
+import cookieParser from "cookie-parser";
 
 const PORT = process.env.PORT || 5000;
 const app = express();
 app.use(express.json());
+app.use(
+  cors({
+    origin: process.env.ORIGIN,
+    credentials: true,
+    exposedHeaders: ["Authorization"],
+  }),
+);
+app.use(cookieParser());
 
 app.use("/users", userRouter);
 app.get("/ping", (_, res) => res.json({ message: "pong" }));
