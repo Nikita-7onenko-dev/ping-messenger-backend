@@ -9,9 +9,10 @@ class GeoService {
     if (cachedLocation) return cachedLocation;
 
     const location = await getGeoLocation(ip);
-    if (!location || !location.country) return { country: null, city: null };
+    if (!location || !location.country_name)
+      return { country: null, city: null };
 
-    const { city, country } = location;
+    const { city, country_name: country } = location;
 
     await geoRepository.cacheLocation({
       ipAddress: ip,
