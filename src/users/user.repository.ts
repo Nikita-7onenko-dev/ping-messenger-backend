@@ -63,17 +63,49 @@ class UserRepository {
   }
 
   async deleteById(userId: string) {
+    const client = await pool.connect();
     try {
-      const result = await pool.query<{ id: string }>(
-        `DELETE FROM users
+      await client.query("BEGIN");
+
+      const result = await client.query<{ id: string }>(
+        `UPDATE users
+          SET
+            name = NULL,
+            username = NULL,
+            email = NULL,
+            is_deleted = TRUE
           WHERE id = $1
-          RETURNING id`,
+          RETURNING id;`,
         [userId],
       );
+
       const [row] = result.rows;
-      return row;
+
+      if (!row) {
+        await client.query("ROLLBACK");
+        return false;
+      }
+
+      await client.query(
+        `DELETE FROM user_credentials
+          WHERE user_id = $1;`,
+        [userId],
+      );
+
+      await client.query(
+        `DELETE FROM user_sessions
+          WHERE user_id = $1;`,
+        [userId],
+      );
+
+      await client.query("COMMIT");
+
+      return true;
     } catch (err) {
+      await client.query("ROLLBACK");
       throw translateDBError(err, "user");
+    } finally {
+      client.release();
     }
   }
 }

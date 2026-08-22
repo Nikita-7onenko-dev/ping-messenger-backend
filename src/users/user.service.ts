@@ -36,8 +36,8 @@ class UserService {
   }
 
   async deleteMe(id: string) {
-    const deletedId = await userRepository.deleteById(id);
-    if (!deletedId) {
+    const isSuccess = await userRepository.deleteById(id);
+    if (!isSuccess) {
       throw ApiError.notFound("User not found");
     }
   }
