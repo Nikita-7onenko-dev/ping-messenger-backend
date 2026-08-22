@@ -3,9 +3,15 @@ import bcrypt from "bcrypt";
 import { userRepository } from "./user.repository.js";
 import { ApiError } from "@/exceptions/ApiError.js";
 import { tokenService } from "@/token/token.service.js";
+import { geoService } from "@/geo/geo.service.js";
+import type { RegistrationResult } from "./user.types.js";
 
 class UserService {
-  async register(reqBody: unknown) {
+  async register(
+    reqBody: unknown,
+    userAgent: string | null,
+    ipAddress: string | null,
+  ): Promise<RegistrationResult> {
     const userInput = validateUser(reqBody);
     const hash = await bcrypt.hash(userInput.password, 12);
 
@@ -13,18 +19,38 @@ class UserService {
     const refreshTokenHash = tokenService.hashRefreshToken(refreshToken);
     const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
 
-    const user = await userRepository.create({
+    const geoData = await geoService.getGeoLocation(ipAddress);
+
+    const createUserResult = await userRepository.create({
       name: userInput.name,
       username: userInput.username,
       email: userInput.email,
       passwordHash: hash,
       refreshTokenHash,
       expiresAt,
+      userAgent,
+      ipAddress,
+      city: geoData.city,
+      country: geoData.country,
     });
 
-    const accessToken = tokenService.generateAccessToken({ userId: user.id });
+    const accessToken = tokenService.generateAccessToken({
+      userId: createUserResult.user.id,
+    });
 
-    return { user, refreshToken, accessToken };
+    return {
+      user: createUserResult.user,
+      session: {
+        ...createUserResult.session,
+        userAgent,
+        ipAddress,
+        ...geoData,
+      },
+      tokens: {
+        refreshToken,
+        accessToken,
+      },
+    };
   }
 
   async getByUsername(username: string) {

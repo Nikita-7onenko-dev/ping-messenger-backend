@@ -1,12 +1,18 @@
 import { pool } from "@/database/database.config.js";
 import { translateDBError } from "@/database/errors/translateDBError.js";
-
-import type { UserInput, PublicUser, User } from "./user.types.js";
 import { ApiError } from "@/exceptions/ApiError.js";
 
+import type {
+  UserInput,
+  PublicUser,
+  User,
+  CreateUserResult,
+} from "./user.types.js";
+
 class UserRepository {
-  async create(userInput: UserInput) {
+  async create(userInput: UserInput): Promise<CreateUserResult> {
     const client = await pool.connect();
+    let resource = "user";
     try {
       await client.query("BEGIN");
 
@@ -22,6 +28,8 @@ class UserRepository {
         throw ApiError.internal("Failed to create user");
       }
 
+      resource = "user_credentials";
+
       await client.query(
         `INSERT INTO user_credentials (user_id, password_hash)
           VALUES ($1, $2)
@@ -29,19 +37,35 @@ class UserRepository {
         [user.id, userInput.passwordHash],
       );
 
-      await client.query(
-        `INSERT INTO user_sessions (user_id, refresh_token_hash, expires_at)
-          VALUES ($1, $2, $3)
+      resource = "user_sessions";
+
+      const sessionResult = await client.query<{ lastUsedAt: Date }>(
+        `INSERT INTO user_sessions 
+          (user_id, refresh_token_hash, expires_at, ip_address, user_agent, country, city)
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
+          RETURNING last_used_at AS "lastUsedAt"
         `,
-        [user.id, userInput.refreshTokenHash, userInput.expiresAt],
+        [
+          user.id,
+          userInput.refreshTokenHash,
+          userInput.expiresAt,
+          userInput.ipAddress,
+          userInput.userAgent,
+          userInput.country,
+          userInput.city,
+        ],
       );
+
+      const [session] = sessionResult.rows;
+
+      if (!session) throw ApiError.internal("Failed to create user session");
 
       await client.query("COMMIT");
 
-      return user;
+      return { user, session };
     } catch (err) {
       await client.query("ROLLBACK");
-      throw translateDBError(err, "user");
+      throw translateDBError(err, resource);
     } finally {
       client.release();
     }
@@ -64,6 +88,7 @@ class UserRepository {
 
   async deleteById(userId: string) {
     const client = await pool.connect();
+    let resource = "user";
     try {
       await client.query("BEGIN");
 
@@ -74,7 +99,7 @@ class UserRepository {
             username = NULL,
             email = NULL,
             is_deleted = TRUE
-          WHERE id = $1
+          WHERE id = $1 AND is_deleted = FALSE
           RETURNING id;`,
         [userId],
       );
@@ -86,12 +111,14 @@ class UserRepository {
         return false;
       }
 
+      resource = "user_credentials";
       await client.query(
         `DELETE FROM user_credentials
           WHERE user_id = $1;`,
         [userId],
       );
 
+      resource = "user_sessions";
       await client.query(
         `DELETE FROM user_sessions
           WHERE user_id = $1;`,
@@ -103,7 +130,7 @@ class UserRepository {
       return true;
     } catch (err) {
       await client.query("ROLLBACK");
-      throw translateDBError(err, "user");
+      throw translateDBError(err, resource);
     } finally {
       client.release();
     }

@@ -2,16 +2,24 @@ import type { Request, Response } from "express";
 import { userService } from "./user.service.js";
 import { ApiError } from "@/exceptions/ApiError.js";
 import { generateRandomToken } from "@/utils/generateRandomToken.js";
+import { getClientIp } from "@/utils/getClientIp.js";
 
 const isProd = process.env.IS_PROD === "true";
 
 class UserController {
   async register(req: Request, res: Response) {
-    const { refreshToken, accessToken, user } = await userService.register(
+    const ipAddress = isProd
+      ? getClientIp(req)
+      : (process.env.DEV_TEST_IP ?? getClientIp(req));
+    const userAgent = req.get("User-Agent") || null;
+
+    const { tokens, user, session } = await userService.register(
       req.body,
+      userAgent,
+      ipAddress,
     );
 
-    res.cookie("refreshToken", refreshToken, {
+    res.cookie("refreshToken", tokens.refreshToken, {
       httpOnly: true,
       secure: isProd,
       sameSite: isProd ? "none" : "lax",
@@ -24,8 +32,8 @@ class UserController {
       sameSite: isProd ? "none" : "lax",
     });
 
-    res.setHeader("Authorization", `Bearer ${accessToken}`);
-    res.status(201).json(user);
+    res.setHeader("Authorization", `Bearer ${tokens.accessToken}`);
+    res.status(201).json({ user, session });
   }
 
   async getByUsername(req: Request, res: Response) {
