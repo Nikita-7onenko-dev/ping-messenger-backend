@@ -1,10 +1,10 @@
-import { validateUser } from "./user.schema.js";
 import bcrypt from "bcrypt";
 import { userRepository } from "./user.repository.js";
 import { ApiError } from "@/exceptions/ApiError.js";
 import { tokenService } from "@/token/token.service.js";
 import { geoService } from "@/geo/geo.service.js";
 import type { RegistrationResult } from "./user.types.js";
+import { createUserSchema, updateUserSchema } from "./user.schema.js";
 
 class UserService {
   async register(
@@ -12,7 +12,7 @@ class UserService {
     userAgent: string | null,
     ipAddress: string | null,
   ): Promise<RegistrationResult> {
-    const userInput = validateUser(reqBody);
+    const userInput = createUserSchema.parse(reqBody);
     const hash = await bcrypt.hash(userInput.password, 12);
 
     const refreshToken = tokenService.generateRefreshToken();
@@ -59,6 +59,18 @@ class UserService {
       throw ApiError.notFound("User not found");
     }
     return user;
+  }
+
+  async getMe(id: string) {
+    const user = await userRepository.getById(id);
+    if (!user) throw ApiError.notFound("User not found");
+    return user;
+  }
+
+  async updateMe(id: string, updateData: unknown) {
+    const validData = updateUserSchema.parse(updateData);
+    const isUpdated = await userRepository.updateById(id, validData);
+    if (!isUpdated) throw ApiError.notFound("User not found");
   }
 
   async deleteMe(id: string) {

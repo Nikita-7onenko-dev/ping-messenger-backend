@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { createUserSchema } from "./user.schema.js";
+import { updateUserSchema, type createUserSchema } from "./user.schema.js";
 
 export type UserInput = Omit<z.infer<typeof createUserSchema>, "password"> & {
   passwordHash: string;
@@ -47,3 +47,5 @@ export type PublicUser = {
   name: string;
   username: string;
 };
+
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;

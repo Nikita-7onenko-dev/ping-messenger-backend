@@ -6,8 +6,9 @@ const userRouter = Router();
 
 userRouter.post("/", userController.register);
 
-// userRouter.get("/me", authMiddleware, getMe) // Auth required
 userRouter.get("/:username", userController.getByUsername); // Public
+userRouter.get("/me", authenticationMiddleware, userController.getMe); // Personal
+userRouter.patch("/me", authenticationMiddleware, userController.updateMe);
 userRouter.delete("/me", authenticationMiddleware, userController.deleteMe);
 
 export { userRouter };

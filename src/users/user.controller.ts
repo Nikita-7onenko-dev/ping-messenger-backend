@@ -51,15 +51,23 @@ class UserController {
     res.status(200).json(user);
   }
 
-  async deleteMe(req: Request, res: Response) {
-    const id = req.userId;
+  async getMe(req: Request, res: Response) {
+    const id = req.userId!; // checked in middleware
+    const user = await userService.getMe(id);
+    res.status(200).json(user);
+  }
 
-    if (!id || typeof id !== "string") {
-      throw ApiError.unauthorized("Unauthorized");
-    }
+  async updateMe(req: Request, res: Response) {
+    const id = req.userId!; // checked in middleware
+    await userService.updateMe(id, req.body);
+    res.status(204);
+  }
+
+  async deleteMe(req: Request, res: Response) {
+    const id = req.userId!; // checked in middleware
 
     await userService.deleteMe(id);
-    res.status(200).json({ message: "Success" });
+    res.status(204);
   }
 }
 

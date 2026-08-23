@@ -7,7 +7,14 @@ import type {
   PublicUser,
   User,
   CreateUserResult,
+  UpdateUserInput,
 } from "./user.types.js";
+
+const updateUserAllowedFields = new Set<keyof UpdateUserInput>([
+  "name",
+  "username",
+  "email",
+]);
 
 class UserRepository {
   async create(userInput: UserInput): Promise<CreateUserResult> {
@@ -86,6 +93,57 @@ class UserRepository {
     }
   }
 
+  async getById(id: string) {
+    try {
+      const result = await pool.query<User>(
+        `SELECT id, name, username, email
+          FROM users
+          WHERE id = $1`,
+        [id],
+      );
+      const [user] = result.rows;
+      return user;
+    } catch (err) {
+      throw translateDBError(err, "user");
+    }
+  }
+
+  async updateById(id: string, updateData: UpdateUserInput) {
+    const queryValues: NonNullable<UpdateUserInput[keyof UpdateUserInput]>[] =
+      [];
+    const queryKeys: string[] = [];
+
+    Object.keys(updateData).forEach((key) => {
+      const value = updateData[key as keyof UpdateUserInput];
+      if (
+        value !== undefined &&
+        updateUserAllowedFields.has(key as keyof UpdateUserInput)
+      ) {
+        queryValues.push(value);
+        queryKeys.push(`${key} = $${queryValues.length}`);
+      }
+    });
+    queryValues.push(id);
+
+    try {
+      const result = await pool.query<{ id: string }>(
+        `UPDATE users
+          SET
+            ${queryKeys.join(", ")}
+          WHERE id = $${queryValues.length}
+          RETURNING id;
+        `,
+        queryValues,
+      );
+
+      const [id] = result.rows;
+      if (!id) return false;
+      return true;
+    } catch (err) {
+      throw translateDBError(err, "user");
+    }
+  }
+
   async deleteById(userId: string) {
     const client = await pool.connect();
     let resource = "user";
@@ -138,4 +196,6 @@ class UserRepository {
 }
 
 const userRepository = new UserRepository();
+
+userRepository.updateById("123123", {});
 export { userRepository };
