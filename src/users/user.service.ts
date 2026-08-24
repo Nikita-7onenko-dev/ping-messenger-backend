@@ -19,7 +19,7 @@ class UserService {
     const refreshTokenHash = tokenService.hashRefreshToken(refreshToken);
     const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
 
-    const geoData = await geoService.getGeoLocation(ipAddress);
+    const geoLocation = await geoService.getGeoLocation(ipAddress);
 
     const createUserResult = await userRepository.create({
       name: userInput.name,
@@ -30,12 +30,12 @@ class UserService {
       expiresAt,
       userAgent,
       ipAddress,
-      city: geoData.city,
-      country: geoData.country,
+      ...geoLocation,
     });
 
     const accessToken = tokenService.generateAccessToken({
       userId: createUserResult.user.id,
+      sessionId: createUserResult.session.id,
     });
 
     return {
@@ -44,7 +44,7 @@ class UserService {
         ...createUserResult.session,
         userAgent,
         ipAddress,
-        ...geoData,
+        ...geoLocation,
       },
       tokens: {
         refreshToken,

@@ -3,7 +3,7 @@ import { translateDBError } from "@/database/errors/translateDBError.js";
 import { ApiError } from "@/exceptions/ApiError.js";
 
 import type {
-  UserInput,
+  CreateUserInput,
   PublicUser,
   User,
   CreateUserResult,
@@ -17,7 +17,7 @@ const updateUserAllowedFields = new Set<keyof UpdateUserInput>([
 ]);
 
 class UserRepository {
-  async create(userInput: UserInput): Promise<CreateUserResult> {
+  async create(userInput: CreateUserInput): Promise<CreateUserResult> {
     const client = await pool.connect();
     let resource = "user";
     try {
@@ -46,11 +46,14 @@ class UserRepository {
 
       resource = "user_sessions";
 
-      const sessionResult = await client.query<{ lastUsedAt: Date }>(
+      const sessionResult = await client.query<{
+        lastOnlineAt: Date;
+        id: string;
+      }>(
         `INSERT INTO user_sessions 
           (user_id, refresh_token_hash, expires_at, ip_address, user_agent, country, city)
           VALUES ($1, $2, $3, $4, $5, $6, $7)
-          RETURNING last_used_at AS "lastUsedAt"
+          RETURNING last_online_at AS "lastOnlineAt", id
         `,
         [
           user.id,
@@ -126,19 +129,14 @@ class UserRepository {
     queryValues.push(id);
 
     try {
-      const result = await pool.query<{ id: string }>(
+      const result = await pool.query(
         `UPDATE users
           SET
             ${queryKeys.join(", ")}
-          WHERE id = $${queryValues.length}
-          RETURNING id;
-        `,
+          WHERE id = $${queryValues.length}`,
         queryValues,
       );
-
-      const [id] = result.rows;
-      if (!id) return false;
-      return true;
+      return result.rowCount === 1;
     } catch (err) {
       throw translateDBError(err, "user");
     }
@@ -150,21 +148,18 @@ class UserRepository {
     try {
       await client.query("BEGIN");
 
-      const result = await client.query<{ id: string }>(
+      const result = await client.query(
         `UPDATE users
           SET
             name = NULL,
             username = NULL,
             email = NULL,
             is_deleted = TRUE
-          WHERE id = $1 AND is_deleted = FALSE
-          RETURNING id;`,
+          WHERE id = $1 AND is_deleted = FALSE`,
         [userId],
       );
 
-      const [row] = result.rows;
-
-      if (!row) {
+      if (result.rowCount === 0) {
         await client.query("ROLLBACK");
         return false;
       }
@@ -172,14 +167,14 @@ class UserRepository {
       resource = "user_credentials";
       await client.query(
         `DELETE FROM user_credentials
-          WHERE user_id = $1;`,
+          WHERE user_id = $1`,
         [userId],
       );
 
       resource = "user_sessions";
       await client.query(
         `DELETE FROM user_sessions
-          WHERE user_id = $1;`,
+          WHERE user_id = $1`,
         [userId],
       );
 
@@ -196,6 +191,4 @@ class UserRepository {
 }
 
 const userRepository = new UserRepository();
-
-userRepository.updateById("123123", {});
 export { userRepository };

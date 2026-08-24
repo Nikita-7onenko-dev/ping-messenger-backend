@@ -3,10 +3,7 @@ import { randomBytes, createHmac } from "node:crypto";
 
 import { ApiError } from "@/exceptions/ApiError.js";
 import { generateRandomToken } from "@/utils/generateRandomToken.js";
-
-type AccessTokenPayload = {
-  userId: string;
-};
+import type { AccessTokenPayload } from "./token.types.js";
 
 class TokenService {
   generateAccessToken(payload: AccessTokenPayload) {
