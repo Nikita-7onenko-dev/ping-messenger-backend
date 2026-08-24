@@ -18,7 +18,7 @@ class TokenService {
     try {
       const payload = jwt.verify(token, process.env.JWT_ACCESS_SECRET!);
 
-      if (this.checkAccessPayload(payload)) return payload.userId;
+      if (this.checkAccessPayload(payload)) return payload;
       else throw new Error("Invalid access token payload");
     } catch (err) {
       console.error(err);
@@ -38,12 +38,14 @@ class TokenService {
 
   private checkAccessPayload(
     payload: string | jwt.JwtPayload,
-  ): payload is jwt.JwtPayload & { userId: string } {
+  ): payload is jwt.JwtPayload & AccessTokenPayload {
     if (
       typeof payload === "object" &&
       payload !== null &&
       "userId" in payload &&
-      typeof payload.userId === "string"
+      typeof payload.userId === "string" &&
+      "sessionId" in payload &&
+      typeof payload.sessionId === "string"
     ) {
       return true;
     }

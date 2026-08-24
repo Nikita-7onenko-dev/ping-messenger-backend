@@ -3,6 +3,7 @@ import { userService } from "./user.service.js";
 import { ApiError } from "@/exceptions/ApiError.js";
 import { generateRandomToken } from "@/utils/generateRandomToken.js";
 import { getClientIp } from "@/utils/getClientIp.js";
+import { sessionService } from "./session/session.service.js";
 
 const isProd = process.env.IS_PROD === "true";
 
@@ -60,14 +61,43 @@ class UserController {
   async updateMe(req: Request, res: Response) {
     const id = req.userId!; // checked in middleware
     await userService.updateMe(id, req.body);
-    res.status(204);
+    res.sendStatus(204);
   }
 
   async deleteMe(req: Request, res: Response) {
     const id = req.userId!; // checked in middleware
 
     await userService.deleteMe(id);
-    res.status(204);
+    res.sendStatus(204);
+  }
+
+  async getMySessions(req: Request, res: Response) {
+    const id = req.userId!; // checked in middleware
+
+    const sessions = await sessionService.getAll(id);
+    res.status(200).json(sessions);
+  }
+
+  async endAllSessionsExceptCurrent(req: Request, res: Response) {
+    const { userId, sessionId } = req; // checked in middleware
+    await sessionService.endAllExceptCurrent(sessionId!, userId!);
+    res.sendStatus(204);
+  }
+
+  async endSessionById(req: Request, res: Response) {
+    const userId = req.userId!; // checked in middleware
+    const { sessionId } = req.params;
+
+    if (!sessionId) {
+      throw ApiError.badRequest(`Bad request: sessionId is not specified`);
+    }
+
+    if (Array.isArray(sessionId)) {
+      throw ApiError.badRequest("Bad request: invalid request format");
+    }
+
+    await sessionService.endById(sessionId, userId!);
+    res.sendStatus(204);
   }
 }
 

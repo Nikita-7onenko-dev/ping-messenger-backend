@@ -13,7 +13,8 @@ export function authenticationMiddleware(
   const [scheme, token] = authHeader.split(" ");
   if (!token || scheme !== "Bearer") throw ApiError.unauthorized();
 
-  const userId = tokenService.verifyAccessToken(token);
-  req.userId = userId;
+  const payload = tokenService.verifyAccessToken(token);
+  req.userId = payload.userId;
+  req.sessionId = payload.sessionId;
   next();
 }

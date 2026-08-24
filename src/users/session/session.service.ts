@@ -89,6 +89,11 @@ class SessionService {
     if (!isSuccess) throw ApiError.notFound("Session not found");
   }
 
+  async endById(sessionId: string, userId: string) {
+    const isSuccess = await sessionRepository.endById(sessionId, userId);
+    if (!isSuccess) throw ApiError.notFound("Session not found");
+  }
+
   async endAllExceptCurrent(sessionId: string, userId: string) {
     await sessionRepository.deleteAllExceptCurrent(sessionId, userId);
   }

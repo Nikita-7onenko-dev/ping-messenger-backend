@@ -124,6 +124,20 @@ class SessionRepository {
     }
   }
 
+  async endById(sessionId: string, userId: string) {
+    try {
+      const result = await pool.query(
+        `DELETE FROM user_sessions
+          WHERE id = $1
+            AND user_id = $2`,
+        [sessionId, userId],
+      );
+      return result.rowCount === 1;
+    } catch (err) {
+      throw translateDBError(err, "user_sessions");
+    }
+  }
+
   async deleteAllExceptCurrent(sessionId: string, userId: string) {
     try {
       await pool.query(
