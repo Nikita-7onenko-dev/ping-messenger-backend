@@ -16,7 +16,7 @@ export function translateDBError(err: unknown, resource: string) {
     case "23503": {
       logDBError(err);
       return ApiError.badRequest(
-        `Bad request: related resource does not exist`,
+        `Bad request: related ${resource} does not exist`,
       );
     }
     default: {

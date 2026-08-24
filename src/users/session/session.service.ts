@@ -45,7 +45,7 @@ class SessionService {
     };
   }
 
-  async getByRefreshToken(refreshToken: string): Promise<Tokens> {
+  async refreshAccessToken(refreshToken: string): Promise<Tokens> {
     const hashFromClient = tokenService.hashRefreshToken(refreshToken);
     const session =
       await sessionRepository.getByRefreshTokenHash(hashFromClient);
@@ -84,13 +84,8 @@ class SessionService {
     if (!isSuccess) throw ApiError.notFound("Session not found");
   }
 
-  async endCurrent(sessionId: string) {
-    const isSuccess = await sessionRepository.deleteCurrent(sessionId);
-    if (!isSuccess) throw ApiError.notFound("Session not found");
-  }
-
   async endById(sessionId: string, userId: string) {
-    const isSuccess = await sessionRepository.endById(sessionId, userId);
+    const isSuccess = await sessionRepository.deleteById(sessionId, userId);
     if (!isSuccess) throw ApiError.notFound("Session not found");
   }
 

@@ -1,10 +1,9 @@
 import { Router } from "express";
 import { userController } from "./user.controller.js";
-import { authenticationMiddleware } from "@/middleware/authenticationMiddleware.js";
+import { authenticationMiddleware } from "@/middleware/authentication.middleware.js";
 
 const userRouter = Router();
 
-userRouter.post("/", userController.register);
 // Public
 userRouter.get("/:username", userController.getByUsername);
 

@@ -111,20 +111,7 @@ class SessionRepository {
     }
   }
 
-  async deleteCurrent(sessionId: string) {
-    try {
-      const result = await pool.query(
-        `DELETE FROM user_sessions
-          WHERE id = $1`,
-        [sessionId],
-      );
-      return result.rowCount === 1;
-    } catch (err) {
-      throw translateDBError(err, "user_sessions");
-    }
-  }
-
-  async endById(sessionId: string, userId: string) {
+  async deleteById(sessionId: string, userId: string) {
     try {
       const result = await pool.query(
         `DELETE FROM user_sessions
