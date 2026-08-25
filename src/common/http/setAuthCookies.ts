@@ -1,5 +1,5 @@
 import type { Response } from "express";
-import { generateRandomToken } from "../utils/generateRandomToken.js";
+import { generateRandomToken } from "../crypto/generateRandomToken.js";
 
 const isProd = process.env.IS_PROD === "true";
 

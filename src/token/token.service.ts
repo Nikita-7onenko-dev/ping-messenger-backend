@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import { randomBytes, createHmac } from "node:crypto";
 
 import { ApiError } from "@/exceptions/ApiError.js";
-import { generateRandomToken } from "@/common/utils/generateRandomToken.js";
+import { generateRandomToken } from "@/common/crypto/generateRandomToken.js";
 import type { AccessTokenPayload } from "./token.types.js";
 
 class TokenService {

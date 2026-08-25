@@ -1,21 +1,28 @@
 import type { Request, Response } from "express";
-import { getClientIp } from "@/common/utils/getClientIp.js";
+import { getClientIp } from "@/common/http/getClientIp.js";
 import { authService } from "./auth.service.js";
 import { setAuthCookies } from "@/common/http/setAuthCookies.js";
 import { setAccessTokenHeader } from "@/common/http/setAccessTokenHeader.js";
 import { ApiError } from "@/exceptions/ApiError.js";
 import { sessionService } from "@/users/session/session.service.js";
+import { userSettingsService } from "@/users/settings/settings.service.js";
+import { resolveLocale } from "@/common/http/resolveLocale.js";
 
 class AuthController {
   async register(req: Request, res: Response) {
     const ipAddress = getClientIp(req);
     const userAgent = req.get("User-Agent") || null;
+    const locale = resolveLocale(req);
+
+    console.log("Detected locale:", locale);
 
     const { tokens, user, session } = await authService.register(
       req.body,
       userAgent,
       ipAddress,
     );
+
+    await userSettingsService.setLocale(user.id, locale);
 
     setAuthCookies(res, tokens.refreshToken);
     setAccessTokenHeader(res, tokens.accessToken);
