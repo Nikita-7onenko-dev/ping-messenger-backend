@@ -1,13 +1,10 @@
+import { zodError } from "@/common/validation/zodError.js";
 import { z } from "zod";
 
-export const nameSchema = z.string().min(1, { error: "Name cannot be empty" });
-export const usernameSchema = z
-  .string()
-  .min(1, { error: "Username cannot be empty" });
-export const emailSchema = z.email("Invalid email format");
-export const passwordSchema = z
-  .string()
-  .min(8, { error: "Password must be at least 8 characters long" });
+export const nameSchema = z.string().min(1, zodError("REQUIRED"));
+export const usernameSchema = z.string().min(1, zodError("REQUIRED"));
+export const emailSchema = z.email(zodError("INVALID_EMAIL"));
+export const passwordSchema = z.string().min(8, zodError("TOO_SHORT"));
 
 export const createUserSchema = z.object({
   name: nameSchema,
@@ -25,5 +22,5 @@ export const updateUserSchema = z
   .refine(
     (updateData) =>
       Object.values(updateData).some((value) => value !== undefined),
-    { error: "At least one field must be provided" },
+    zodError("AT_LEAST_ONE_FIELD_REQUIRED"),
   );

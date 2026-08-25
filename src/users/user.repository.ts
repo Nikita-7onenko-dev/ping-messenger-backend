@@ -32,7 +32,7 @@ class UserRepository {
       const [user] = result.rows;
 
       if (!user) {
-        throw ApiError.internal("Failed to create user");
+        throw ApiError.internal();
       }
 
       resource = "user_credentials";
@@ -68,7 +68,7 @@ class UserRepository {
 
       const [session] = sessionResult.rows;
 
-      if (!session) throw ApiError.internal("Failed to create user session");
+      if (!session) throw ApiError.internal();
 
       await client.query("COMMIT");
 

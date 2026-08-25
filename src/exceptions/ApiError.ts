@@ -1,36 +1,40 @@
+import type { ApiErrorCode } from "./API_ERROR_CODES.type.js";
+
 export class ApiError extends Error {
   status: number;
+  code: string;
 
-  constructor(status: number, message: string) {
-    super(message);
+  constructor(status: number, code: string) {
+    super();
+    this.code = code;
     this.status = status;
   }
 
-  static badRequest(message = "Bad Request") {
-    return new ApiError(400, message);
+  static badRequest(code: ApiErrorCode = "BAD_REQUEST") {
+    return new ApiError(400, code);
   }
 
-  static unauthorized(message = "Unauthorized") {
-    return new ApiError(401, message);
+  static unauthorized(code: ApiErrorCode = "UNAUTHORIZED") {
+    return new ApiError(401, code);
   }
 
-  static forbidden(message = "Forbidden") {
-    return new ApiError(403, message);
+  static forbidden(code: ApiErrorCode = "FORBIDDEN") {
+    return new ApiError(403, code);
   }
 
-  static notFound(message = "Not found") {
-    return new ApiError(404, message);
+  static notFound(code: ApiErrorCode = "NOT_FOUND") {
+    return new ApiError(404, code);
   }
 
-  static conflict(message = "Conflict") {
-    return new ApiError(409, message);
+  static conflict(code: ApiErrorCode = "CONFLICT") {
+    return new ApiError(409, code);
   }
 
-  static internal(message = "Internal server error") {
+  static internal(message: string = "INTERNAL_SERVER_ERROR") {
     return new ApiError(500, message);
   }
 
-  static serviceUnavailable(message = "Service unavailable") {
+  static serviceUnavailable(message: string = "SERVICE_UNAVAILABLE") {
     return new ApiError(503, message);
   }
 }

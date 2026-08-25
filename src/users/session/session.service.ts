@@ -51,7 +51,7 @@ class SessionService {
       await sessionRepository.getByRefreshTokenHash(hashFromClient);
 
     if (!session || session.expiresAt.getTime() <= Date.now()) {
-      throw ApiError.unauthorized("Invalid or expired token");
+      throw ApiError.unauthorized();
     }
 
     const accessToken = tokenService.generateAccessToken({
@@ -76,17 +76,17 @@ class SessionService {
       userAgent,
       ...geoLocation,
     });
-    if (!isSuccess) throw ApiError.notFound("Session not found");
+    if (!isSuccess) throw ApiError.internal();
   }
 
   async updateLastOnline(sessionId: string) {
     const isSuccess = await sessionRepository.updateLastOnline(sessionId);
-    if (!isSuccess) throw ApiError.notFound("Session not found");
+    if (!isSuccess) throw ApiError.internal();
   }
 
   async endById(sessionId: string, userId: string) {
     const isSuccess = await sessionRepository.deleteById(sessionId, userId);
-    if (!isSuccess) throw ApiError.notFound("Session not found");
+    if (!isSuccess) throw ApiError.notFound("SESSION_NOT_FOUND");
   }
 
   async endAllExceptCurrent(sessionId: string, userId: string) {

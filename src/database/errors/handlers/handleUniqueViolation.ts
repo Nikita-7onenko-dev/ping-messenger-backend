@@ -6,8 +6,8 @@ import { logDBError } from "../logDBError.js";
 export function handleUniqueViolation(err: DatabaseError, resource: string) {
   const handler = err.constraint && constraintMap[err.constraint];
   if (!handler) {
-    logDBError(err);
-    return ApiError.conflict(`Conflict: ${resource} already exists`);
+    logDBError(err, `${resource} unique constraint violation`);
+    return ApiError.conflict();
   }
 
   const error = handler();

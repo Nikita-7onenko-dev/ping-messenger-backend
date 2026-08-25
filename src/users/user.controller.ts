@@ -8,11 +8,11 @@ class UserController {
     const { username } = req.params;
 
     if (!username) {
-      throw ApiError.badRequest(`Bad request: username is not specified`);
+      throw ApiError.badRequest("MISSING_PARAMETER");
     }
 
     if (Array.isArray(username)) {
-      throw ApiError.badRequest("Bad request: invalid request format");
+      throw ApiError.badRequest("INVALID_PARAMETER_FORMAT");
     }
 
     const user = await userService.getByUsername(username);
@@ -56,11 +56,11 @@ class UserController {
     const { sessionId } = req.params;
 
     if (!sessionId) {
-      throw ApiError.badRequest(`Bad request: sessionId is not specified`);
+      throw ApiError.badRequest("MISSING_PARAMETER");
     }
 
     if (Array.isArray(sessionId)) {
-      throw ApiError.badRequest("Bad request: invalid request format");
+      throw ApiError.badRequest("INVALID_PARAMETER_FORMAT");
     }
 
     await sessionService.endById(sessionId, userId!);

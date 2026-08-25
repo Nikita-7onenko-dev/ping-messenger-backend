@@ -66,7 +66,7 @@ class AuthService {
     const comparingResult = await bcrypt.compare(validPassword, passwordHash);
 
     if (!comparingResult) {
-      throw ApiError.unauthorized("Invalid credentials");
+      throw ApiError.unauthorized("INVALID_CREDENTIALS");
     }
 
     const createSessionResult = await sessionService.create(

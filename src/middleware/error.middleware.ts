@@ -1,6 +1,11 @@
 import type { NextFunction, Request, Response } from "express";
 import { ApiError } from "@/exceptions/ApiError.js";
-import z, { ZodError } from "zod";
+import { z, ZodError } from "zod";
+
+const errorMap: Record<number, string> = {
+  500: "INTERNAL_SERVER_ERROR",
+  503: "SERVICE_UNAVAILABLE",
+};
 
 export function errorMiddleware(
   error: unknown,
@@ -8,6 +13,13 @@ export function errorMiddleware(
   res: Response,
   next: NextFunction,
 ) {
+  if (error instanceof ApiError && error.status >= 500) {
+    console.error(error);
+    return res
+      .status(error.status)
+      .json({ message: errorMap[error.status] ?? "INTERNAL_SERVER_ERROR" });
+  }
+
   if (error instanceof ApiError) {
     return res.status(error.status).json({ message: error.message });
   }

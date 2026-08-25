@@ -14,14 +14,16 @@ export function translateDBError(err: unknown, resource: string) {
     case "23502":
       return handleNotNullViolation(err, resource);
     case "23503": {
-      logDBError(err);
-      return ApiError.badRequest(
-        `Bad request: related ${resource} does not exist`,
-      );
+      logDBError(err, "Foreign-key violation");
+      return ApiError.internal();
+    }
+    case "23514": {
+      logDBError(err, "Check constraint violation");
+      return ApiError.internal();
     }
     default: {
-      logDBError(err);
-      return ApiError.internal("Internal: database error");
+      logDBError(err, "Uncaught");
+      return ApiError.internal();
     }
   }
 }

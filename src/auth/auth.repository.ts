@@ -15,7 +15,7 @@ class AuthRepository {
       );
       const [user] = result.rows;
 
-      if (!user) throw ApiError.notFound("Invalid credentials");
+      if (!user) throw ApiError.notFound("INVALID_CREDENTIALS");
 
       resource = "user_credentials";
 
@@ -27,7 +27,10 @@ class AuthRepository {
       );
       const [credential] = credentialsResult.rows;
 
-      if (!credential) throw ApiError.internal("Internal database error");
+      if (!credential)
+        throw ApiError.internal(
+          "Internal database error: user_credentials not found",
+        );
 
       return { user, passwordHash: credential.passwordHash };
     } catch (err) {
