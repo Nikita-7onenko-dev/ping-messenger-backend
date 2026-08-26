@@ -11,6 +11,18 @@ import { userIdSchema } from "@/users/user.schema.js";
 import { tokenSchema } from "@/auth/auth.schema.js";
 
 class OneTimeTokenService {
+  private generateOneTimeToken() {
+    const token = generateRandomToken();
+    const tokenHash = hashWithSha256(token);
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    return {
+      token,
+      tokenHash,
+      expiresAt,
+    };
+  }
+
   async createEmailVerifyLink(userId: string, email: string) {
     const storedToken = await oneTimeTokenRepository.getTokenById(
       userId,
@@ -21,21 +33,19 @@ class OneTimeTokenService {
       throw ApiError.forbidden("ACTIVATION_LINK_ALREADY_EXISTS");
     }
 
-    const activationToken = generateRandomToken();
-    const tokenHash = hashWithSha256(activationToken);
-    const newExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
+    const { token, tokenHash, expiresAt } = this.generateOneTimeToken();
 
     const isSuccess = await oneTimeTokenRepository.setToken({
       userId,
       tokenHash,
-      expiresAt: newExpiresAt,
+      expiresAt,
       tokenType: "email_verification",
     });
     if (!isSuccess) throw ApiError.internal("Failed to upsert token");
 
     await mailService.sendEmailVerification(
       email,
-      `${process.env.ORIGIN}/auth/activate?userId=${userId}&token=${activationToken}`,
+      `${process.env.ORIGIN}/auth/activate?userId=${userId}&token=${token}`,
     );
   }
 
@@ -78,6 +88,26 @@ class OneTimeTokenService {
     } finally {
       client.release();
     }
+  }
+
+  async resendEmailVerification(userId: string) {
+    const user = await userRepository.getById(userId);
+    if (!user) throw ApiError.internal("Authenticated user not found");
+
+    const { token, tokenHash, expiresAt } = this.generateOneTimeToken();
+
+    const isSuccess = await oneTimeTokenRepository.setToken({
+      userId,
+      tokenHash,
+      expiresAt,
+      tokenType: "email_verification",
+    });
+    if (!isSuccess) throw ApiError.internal("Failed to upsert token");
+
+    await mailService.sendEmailVerification(
+      user.email,
+      `${process.env.ORIGIN}/auth/activate?userId=${userId}&token=${token}`,
+    );
   }
 }
 

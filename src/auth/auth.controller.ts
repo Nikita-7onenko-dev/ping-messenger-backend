@@ -29,7 +29,14 @@ class AuthController {
   async activate(req: Request, res: Response) {
     const { userId, token } = req.query;
     await oneTimeTokenService.activateEmail(userId, token);
+
     res.redirect(process.env.ORIGIN! + "/users/me");
+  }
+
+  async activationResend(req: Request, res: Response) {
+    const userId = req.userId!; // checked in auth middleware
+    await oneTimeTokenService.resendEmailVerification(userId);
+    res.sendStatus(204);
   }
 
   async login(req: Request, res: Response) {

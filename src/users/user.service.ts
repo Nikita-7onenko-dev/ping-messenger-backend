@@ -13,20 +13,20 @@ class UserService {
 
   async getMe(id: string) {
     const user = await userRepository.getById(id);
-    if (!user) throw ApiError.notFound("USER_NOT_FOUND");
+    if (!user) throw ApiError.internal("Authenticated user not found");
     return user;
   }
 
   async updateMe(id: string, updateData: unknown) {
     const validData = updateUserSchema.parse(updateData);
     const isUpdated = await userRepository.updateById(id, validData);
-    if (!isUpdated) throw ApiError.notFound("USER_NOT_FOUND");
+    if (!isUpdated) throw ApiError.internal("Authenticated user not found");
   }
 
   async deleteMe(id: string) {
     const isSuccess = await userRepository.deleteById(id);
     if (!isSuccess) {
-      throw ApiError.notFound("USER_NOT_FOUND");
+      throw ApiError.internal("Authenticated user not found");
     }
   }
 }
