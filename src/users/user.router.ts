@@ -9,9 +9,6 @@ userRouter.get("/me", authenticationMiddleware, userController.getMe);
 userRouter.patch("/me", authenticationMiddleware, userController.updateMe);
 userRouter.delete("/me", authenticationMiddleware, userController.deleteMe);
 
-// Public
-userRouter.get("/:username", userController.getByUsername);
-
 // Sessions
 userRouter.get(
   "/me/sessions",
@@ -28,5 +25,8 @@ userRouter.delete(
   authenticationMiddleware,
   userController.endSessionById,
 );
+
+// Public
+userRouter.get("/:username", userController.getByUsername);
 
 export { userRouter };

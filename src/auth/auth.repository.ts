@@ -14,7 +14,7 @@ class AuthRepository {
       );
       const [user] = result.rows;
 
-      if (!user) throw ApiError.notFound("INVALID_CREDENTIALS");
+      if (!user) throw ApiError.unauthorized("INVALID_CREDENTIALS");
 
       resource = "user_credentials";
 

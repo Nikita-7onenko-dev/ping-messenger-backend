@@ -34,7 +34,7 @@ export class ApiError extends Error {
     return new ApiError(500, message);
   }
 
-  static serviceUnavailable(message: string = "SERVICE_UNAVAILABLE") {
-    return new ApiError(503, message);
+  static serviceUnavailable(code: ApiErrorCode = "SERVICE_UNAVAILABLE") {
+    return new ApiError(503, code);
   }
 }
