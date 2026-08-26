@@ -9,6 +9,7 @@ const isLocale = (locale: string): locale is Locale => {
 
 export function resolveLocale(req: Request): Locale {
   const locale = req.acceptsLanguages([...SUPPORTED_LOCALES]);
+  console.log("Detected locale:", locale);
 
   if (locale && isLocale(locale)) {
     return locale;

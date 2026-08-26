@@ -3,10 +3,10 @@ import { getClientIp } from "@/common/http/getClientIp.js";
 import { authService } from "./auth.service.js";
 import { setAuthCookies } from "@/common/http/setAuthCookies.js";
 import { setAccessTokenHeader } from "@/common/http/setAccessTokenHeader.js";
-import { ApiError } from "@/exceptions/ApiError.js";
 import { sessionService } from "@/users/session/session.service.js";
-import { userSettingsService } from "@/users/settings/settings.service.js";
 import { resolveLocale } from "@/common/http/resolveLocale.js";
+import { oneTimeTokenService } from "@/one-time-token/one-time-token.service.js";
+import { tokenSchema } from "./auth.schema.js";
 
 class AuthController {
   async register(req: Request, res: Response) {
@@ -14,19 +14,22 @@ class AuthController {
     const userAgent = req.get("User-Agent") || null;
     const locale = resolveLocale(req);
 
-    console.log("Detected locale:", locale);
-
-    const { tokens, user, session } = await authService.register(
+    const { refreshToken, accessToken } = await authService.register(
       req.body,
       userAgent,
       ipAddress,
+      locale,
     );
 
-    await userSettingsService.setLocale(user.id, locale);
+    setAuthCookies(res, refreshToken);
+    setAccessTokenHeader(res, accessToken);
+    res.status(201).end();
+  }
 
-    setAuthCookies(res, tokens.refreshToken);
-    setAccessTokenHeader(res, tokens.accessToken);
-    res.status(201).json({ user, session });
+  async activate(req: Request, res: Response) {
+    const { userId, token } = req.query;
+    await oneTimeTokenService.activateEmail(userId, token);
+    res.redirect(process.env.ORIGIN! + "/users/me");
   }
 
   async login(req: Request, res: Response) {
@@ -34,25 +37,23 @@ class AuthController {
     const ipAddress = getClientIp(req);
     const userAgent = req.get("User-Agent") || null;
 
-    const { user, tokens, session } = await authService.login({
+    const { refreshToken, accessToken } = await authService.login({
       identifier,
       password,
       ipAddress,
       userAgent,
     });
 
-    setAuthCookies(res, tokens.refreshToken);
-    setAccessTokenHeader(res, tokens.accessToken);
-    res.status(200).json({ user, session });
+    setAuthCookies(res, refreshToken);
+    setAccessTokenHeader(res, accessToken);
+    res.status(204).end();
   }
 
   async refresh(req: Request, res: Response) {
     const { refreshToken } = req.cookies;
 
-    if (!refreshToken || typeof refreshToken !== "string") {
-      throw ApiError.unauthorized();
-    }
-    const tokens = await sessionService.refreshAccessToken(refreshToken);
+    const validRefreshToken = tokenSchema.parse(refreshToken);
+    const tokens = await sessionService.refreshAccessToken(validRefreshToken);
     setAccessTokenHeader(res, tokens.accessToken);
     res.sendStatus(204);
   }

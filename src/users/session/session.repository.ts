@@ -11,13 +11,12 @@ class SessionRepository {
   async create(createSessionInput: CreateSessionInput) {
     try {
       const sessionResult = await pool.query<{
-        lastOnlineAt: Date;
         id: string;
       }>(
         `INSERT INTO user_sessions 
           (user_id, refresh_token_hash, expires_at, ip_address, user_agent, country, city)
           VALUES ($1, $2, $3, $4, $5, $6, $7)
-          RETURNING last_online_at AS "lastOnlineAt", id
+          RETURNING id
         `,
         [
           createSessionInput.userId,
@@ -33,7 +32,7 @@ class SessionRepository {
 
       if (!session) throw ApiError.internal("Failed to create user session");
 
-      return session;
+      return session.id;
     } catch (err) {
       throw translateDBError(err, "user_sessions");
     }

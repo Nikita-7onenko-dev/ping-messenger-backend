@@ -7,6 +7,7 @@ const authRouter = Router();
 
 authRouter.post("/register", authController.register);
 authRouter.post("/login", authController.login);
+authRouter.get("/activate", authController.activate);
 authRouter.post("/refresh", csrfMiddleware, authController.refresh);
 authRouter.post(
   "/logout",

@@ -13,6 +13,8 @@ export function errorMiddleware(
   res: Response,
   next: NextFunction,
 ) {
+  console.error(error);
+
   if (error instanceof ApiError && error.status >= 500) {
     console.error(error);
     return res

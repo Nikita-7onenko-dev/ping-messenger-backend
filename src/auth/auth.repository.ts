@@ -1,14 +1,13 @@
 import { pool } from "@/database/database.config.js";
 import { translateDBError } from "@/database/errors/translateDBError.js";
 import { ApiError } from "@/exceptions/ApiError.js";
-import type { User } from "@/users/user.types.js";
 
 class AuthRepository {
   async findByIdentifier(identifier: string) {
     let resource = "user";
     try {
-      const result = await pool.query<User>(
-        `SELECT id, name, username, email
+      const result = await pool.query<{ userId: string }>(
+        `SELECT id AS "userId"
           FROM users 
           WHERE username = $1 OR email = $1 `,
         [identifier],
@@ -23,7 +22,7 @@ class AuthRepository {
         `SELECT password_hash AS "passwordHash"
           FROM user_credentials
           WHERE user_id = $1`,
-        [user.id],
+        [user.userId],
       );
       const [credential] = credentialsResult.rows;
 
@@ -32,7 +31,7 @@ class AuthRepository {
           "Internal database error: user_credentials not found",
         );
 
-      return { user, passwordHash: credential.passwordHash };
+      return { ...user, ...credential };
     } catch (err) {
       throw translateDBError(err, resource);
     }

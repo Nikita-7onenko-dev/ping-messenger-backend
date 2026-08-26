@@ -6,6 +6,9 @@ import { userRepository } from "@/users/user.repository.js";
 import { hashWithSha256 } from "@/common/crypto/hashWithSha256.js";
 import { isExpired } from "@/common/time/isExpired.js";
 import { isStillFresh } from "@/common/time/isStillFresh.js";
+import { mailService } from "@/mail/mail.service.js";
+import { userIdSchema } from "@/users/user.schema.js";
+import { tokenSchema } from "@/auth/auth.schema.js";
 
 class OneTimeTokenService {
   async createEmailVerifyLink(userId: string, email: string) {
@@ -29,35 +32,43 @@ class OneTimeTokenService {
       tokenType: "email_verification",
     });
     if (!isSuccess) throw ApiError.internal("Failed to upsert token");
+
+    await mailService.sendEmailVerification(
+      email,
+      `${process.env.ORIGIN}/auth/activate?userId=${userId}&token=${activationToken}`,
+    );
   }
 
-  async activateEmail(userId: string, receivedToken: string) {
+  async activateEmail(userId: unknown, receivedToken: unknown) {
+    const verifiedUserId = userIdSchema.parse(userId);
+    const verifiedReceivedToken = tokenSchema.parse(receivedToken);
     const client = await pool.connect();
     try {
       await client.query("BEGIN");
       const storedToken = await oneTimeTokenRepository.getTokenForUpdate(
         client,
-        userId,
+        verifiedUserId,
         "email_verification",
       );
 
       if (!storedToken) throw ApiError.forbidden("INVALID_CREDENTIALS");
-
       if (isExpired(storedToken.expiresAt)) {
         throw ApiError.forbidden("ACTIVATION_LINK_EXPIRED");
       }
-
-      if (storedToken.tokenHash !== hashWithSha256(receivedToken)) {
+      if (storedToken.tokenHash !== hashWithSha256(verifiedReceivedToken)) {
         throw ApiError.forbidden("INVALID_CREDENTIALS");
       }
 
-      const isSuccess = await userRepository.activateUserById(client, userId);
+      const isSuccess = await userRepository.activateUserById(
+        client,
+        verifiedUserId,
+      );
       if (!isSuccess) {
         throw ApiError.internal("Failed to activate user: user not found");
       }
       await oneTimeTokenRepository.deleteByUserId(
         client,
-        userId,
+        verifiedUserId,
         "email_verification",
       );
       await client.query("COMMIT");

@@ -17,17 +17,9 @@ export type User = {
 };
 
 export type CreateUserResult = {
-  user: User;
-  session: {
-    lastOnlineAt: Date;
-    id: string;
-  };
-};
-
-export type RegistrationResult = {
-  user: User;
-  session: Session;
-  tokens: Tokens;
+  userId: string;
+  email: string;
+  sessionId: string;
 };
 
 export type PublicUser = {

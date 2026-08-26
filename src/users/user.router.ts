@@ -4,13 +4,13 @@ import { authenticationMiddleware } from "@/middleware/authentication.middleware
 
 const userRouter = Router();
 
-// Public
-userRouter.get("/:username", userController.getByUsername);
-
 // Personal
 userRouter.get("/me", authenticationMiddleware, userController.getMe);
 userRouter.patch("/me", authenticationMiddleware, userController.updateMe);
 userRouter.delete("/me", authenticationMiddleware, userController.deleteMe);
+
+// Public
+userRouter.get("/:username", userController.getByUsername);
 
 // Sessions
 userRouter.get(

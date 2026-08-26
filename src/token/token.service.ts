@@ -27,7 +27,15 @@ class TokenService {
   }
 
   generateRefreshToken() {
-    return generateRandomToken();
+    const refreshToken = generateRandomToken();
+    const refreshTokenHash = this.hashRefreshToken(refreshToken);
+    const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+
+    return {
+      refreshToken,
+      refreshTokenHash,
+      expiresAt,
+    };
   }
 
   hashRefreshToken(token: string) {

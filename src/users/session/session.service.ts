@@ -1,7 +1,6 @@
 import { tokenService } from "@/token/token.service.js";
 import { sessionRepository } from "./session.repository.js";
 import { geoService } from "@/geo/geo.service.js";
-import type { CreateSessionResult } from "./session.types.js";
 import { ApiError } from "@/exceptions/ApiError.js";
 import type { Tokens } from "@/token/token.types.js";
 import { isExpired } from "@/common/time/isExpired.js";
@@ -11,14 +10,13 @@ class SessionService {
     userId: string,
     ipAddress: string | null,
     userAgent: string | null,
-  ): Promise<CreateSessionResult> {
-    const refreshToken = tokenService.generateRefreshToken();
-    const refreshTokenHash = tokenService.hashRefreshToken(refreshToken);
-    const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+  ): Promise<Tokens> {
+    const { refreshToken, refreshTokenHash, expiresAt } =
+      tokenService.generateRefreshToken();
 
     const geoLocation = await geoService.getGeoLocation(ipAddress);
 
-    const session = await sessionRepository.create({
+    const sessionId = await sessionRepository.create({
       userId,
       refreshTokenHash,
       expiresAt,
@@ -29,20 +27,12 @@ class SessionService {
 
     const accessToken = tokenService.generateAccessToken({
       userId,
-      sessionId: session.id,
+      sessionId,
     });
 
     return {
-      session: {
-        userAgent,
-        ipAddress,
-        ...session,
-        ...geoLocation,
-      },
-      tokens: {
-        accessToken,
-        refreshToken,
-      },
+      accessToken,
+      refreshToken,
     };
   }
 

@@ -24,10 +24,10 @@ class UserRepository {
     try {
       await client.query("BEGIN");
 
-      const result = await client.query<User>(
+      const result = await client.query<{ userId: string; email: string }>(
         `INSERT INTO users (name, username, email) 
             VALUES ($1, $2, $3)
-            RETURNING id, name, username, email`,
+            RETURNING id AS "userId", email`,
         [userInput.name, userInput.username, userInput.email],
       );
       const [user] = result.rows;
@@ -42,22 +42,19 @@ class UserRepository {
         `INSERT INTO user_credentials (user_id, password_hash)
           VALUES ($1, $2)
         `,
-        [user.id, userInput.passwordHash],
+        [user.userId, userInput.passwordHash],
       );
 
       resource = "user_sessions";
 
-      const sessionResult = await client.query<{
-        lastOnlineAt: Date;
-        id: string;
-      }>(
+      const sessionResult = await client.query<{ sessionId: string }>(
         `INSERT INTO user_sessions 
           (user_id, refresh_token_hash, expires_at, ip_address, user_agent, country, city)
           VALUES ($1, $2, $3, $4, $5, $6, $7)
-          RETURNING last_online_at AS "lastOnlineAt", id
+          RETURNING id AS "sessionId"
         `,
         [
-          user.id,
+          user.userId,
           userInput.refreshTokenHash,
           userInput.expiresAt,
           userInput.ipAddress,
@@ -73,7 +70,7 @@ class UserRepository {
 
       await client.query("COMMIT");
 
-      return { user, session };
+      return { ...user, ...session };
     } catch (err) {
       await client.query("ROLLBACK");
       throw translateDBError(err, resource);

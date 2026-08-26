@@ -1,6 +1,5 @@
 import bcrypt from "bcrypt";
 import { createUserSchema, passwordSchema } from "@/users/user.schema.js";
-import type { RegistrationResult } from "@/users/user.types.js";
 import { tokenService } from "@/token/token.service.js";
 import { geoService } from "@/geo/geo.service.js";
 import { userRepository } from "@/users/user.repository.js";
@@ -9,19 +8,23 @@ import { ApiError } from "@/exceptions/ApiError.js";
 import { sessionService } from "@/users/session/session.service.js";
 import { identifierSchema } from "./auth.schema.js";
 import type { LoginInput } from "./auth.types.js";
+import { oneTimeTokenService } from "@/one-time-token/one-time-token.service.js";
+import { userSettingsService } from "@/users/settings/settings.service.js";
+import type { Locale } from "@/users/settings/settings.types.js";
+import type { Tokens } from "@/token/token.types.js";
 
 class AuthService {
   async register(
     reqBody: unknown,
     userAgent: string | null,
     ipAddress: string | null,
-  ): Promise<RegistrationResult> {
+    locale: Locale,
+  ): Promise<Tokens> {
     const userInput = createUserSchema.parse(reqBody);
     const hash = await bcrypt.hash(userInput.password, 12);
 
-    const refreshToken = tokenService.generateRefreshToken();
-    const refreshTokenHash = tokenService.hashRefreshToken(refreshToken);
-    const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+    const { refreshToken, refreshTokenHash, expiresAt } =
+      tokenService.generateRefreshToken();
 
     const geoLocation = await geoService.getGeoLocation(ipAddress);
 
@@ -37,45 +40,51 @@ class AuthService {
       ...geoLocation,
     });
 
+    await userSettingsService.setLocale(createUserResult.userId, locale);
+
     const accessToken = tokenService.generateAccessToken({
-      userId: createUserResult.user.id,
-      sessionId: createUserResult.session.id,
+      userId: createUserResult.userId,
+      sessionId: createUserResult.sessionId,
     });
 
+    await oneTimeTokenService.createEmailVerifyLink(
+      createUserResult.userId,
+      createUserResult.email,
+    );
+
     return {
-      user: createUserResult.user,
-      session: {
-        ...createUserResult.session,
-        userAgent,
-        ipAddress,
-        ...geoLocation,
-      },
-      tokens: {
-        refreshToken,
-        accessToken,
-      },
+      refreshToken,
+      accessToken,
     };
   }
 
-  async login({ identifier, password, ipAddress, userAgent }: LoginInput) {
+  async login({
+    identifier,
+    password,
+    ipAddress,
+    userAgent,
+  }: LoginInput): Promise<Tokens> {
     const validPassword = passwordSchema.parse(password);
     const validIdentifier = identifierSchema.parse(identifier);
 
-    const { user, passwordHash } =
+    const { userId, passwordHash: storedPasswordHash } =
       await authRepository.findByIdentifier(validIdentifier);
-    const comparingResult = await bcrypt.compare(validPassword, passwordHash);
+    const comparingResult = await bcrypt.compare(
+      validPassword,
+      storedPasswordHash,
+    );
 
     if (!comparingResult) {
       throw ApiError.unauthorized("INVALID_CREDENTIALS");
     }
 
     const createSessionResult = await sessionService.create(
-      user.id,
+      userId,
       ipAddress,
       userAgent,
     );
 
-    return { ...createSessionResult, user };
+    return { ...createSessionResult };
   }
 }
 
