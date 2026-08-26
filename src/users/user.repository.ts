@@ -9,6 +9,7 @@ import type {
   CreateUserResult,
   UpdateUserInput,
 } from "./user.types.js";
+import type { PoolClient } from "pg";
 
 const updateUserAllowedFields = new Set<keyof UpdateUserInput>([
   "name",
@@ -135,6 +136,20 @@ class UserRepository {
             ${queryKeys.join(", ")}
           WHERE id = $${queryValues.length}`,
         queryValues,
+      );
+      return result.rowCount === 1;
+    } catch (err) {
+      throw translateDBError(err, "user");
+    }
+  }
+
+  async activateUserById(client: PoolClient, id: string) {
+    try {
+      const result = await client.query(
+        `UPDATE users
+          SET is_activated = true
+          WHERE id = $1`,
+        [id],
       );
       return result.rowCount === 1;
     } catch (err) {

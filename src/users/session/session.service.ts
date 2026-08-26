@@ -4,6 +4,7 @@ import { geoService } from "@/geo/geo.service.js";
 import type { CreateSessionResult } from "./session.types.js";
 import { ApiError } from "@/exceptions/ApiError.js";
 import type { Tokens } from "@/token/token.types.js";
+import { isExpired } from "@/common/time/isExpired.js";
 
 class SessionService {
   async create(
@@ -50,7 +51,7 @@ class SessionService {
     const session =
       await sessionRepository.getByRefreshTokenHash(hashFromClient);
 
-    if (!session || session.expiresAt.getTime() <= Date.now()) {
+    if (!session || isExpired(session.expiresAt)) {
       throw ApiError.unauthorized();
     }
 
