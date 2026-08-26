@@ -200,6 +200,21 @@ class UserRepository {
       client.release();
     }
   }
+
+  async isEmailVerified(userId: string) {
+    try {
+      const result = await pool.query<{ isActivated: boolean }>(
+        `SELECT is_activated AS "isActivated"
+          FROM users 
+          WHERE id = $1`,
+        [userId],
+      );
+      const [status] = result.rows;
+      return status?.isActivated;
+    } catch (err) {
+      throw translateDBError(err, "user");
+    }
+  }
 }
 
 const userRepository = new UserRepository();
