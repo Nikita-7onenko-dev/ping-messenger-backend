@@ -136,6 +136,18 @@ class SessionRepository {
       throw translateDBError(err, "user_sessions");
     }
   }
+
+  async deleteExpired() {
+    try {
+      const result = await pool.query(
+        `DELETE FROM user_sessions
+          WHERE expires_at < NOW()`,
+      );
+      return result.rowCount;
+    } catch (err) {
+      throw translateDBError(err, "user_sessions");
+    }
+  }
 }
 
 const sessionRepository = new SessionRepository();

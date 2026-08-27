@@ -1,4 +1,4 @@
-import { rateLimiter } from "@/rateLimiter/rateLimiter.js";
+import { rateLimiter } from "@/rate-limiter/rateLimiter.js";
 import type { NextFunction, Request, Response } from "express";
 
 export function rateLimiterMiddleware(limit: number, windowMs?: number) {

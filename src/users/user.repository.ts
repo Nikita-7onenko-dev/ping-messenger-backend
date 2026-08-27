@@ -219,6 +219,28 @@ class UserRepository {
     }
   }
 
+  async hardDelete() {
+    try {
+      const result = await pool.query(
+        `DELETE FROM users u
+          WHERE u.is_deleted = TRUE
+            AND NOT EXISTS (
+                SELECT 1
+                FROM conversation_members cm
+                WHERE cm.user_id = u.id
+            )
+            AND NOT EXISTS (
+                SELECT 1
+                FROM messages m
+                WHERE m.user_id = u.id
+            );`,
+      );
+      return result.rowCount;
+    } catch (err) {
+      throw translateDBError(err, "users");
+    }
+  }
+
   async isEmailVerified(userId: string) {
     try {
       const result = await pool.query<{ isActivated: boolean }>(

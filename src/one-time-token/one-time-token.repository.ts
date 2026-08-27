@@ -85,6 +85,18 @@ class OneTimeTokenRepository {
       throw translateDBError(err, "user_one_time_tokens");
     }
   }
+
+  async deleteExpired() {
+    try {
+      const result = await pool.query(
+        `DELETE FROM user_one_time_tokens
+          WHERE expires_at < NOW()`,
+      );
+      return result.rowCount;
+    } catch (err) {
+      throw translateDBError(err, "user_one_time_tokens");
+    }
+  }
 }
 
 const oneTimeTokenRepository = new OneTimeTokenRepository();

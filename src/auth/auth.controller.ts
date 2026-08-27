@@ -29,7 +29,6 @@ class AuthController {
   async activate(req: Request, res: Response) {
     const { userId, token } = req.query;
     await oneTimeTokenService.activateEmail(userId, token);
-
     res.redirect(process.env.ORIGIN! + "/users/me");
   }
 

@@ -9,6 +9,7 @@ import { isStillFresh } from "@/common/time/isStillFresh.js";
 import { mailService } from "@/mail/mail.service.js";
 import { userIdSchema } from "@/users/user.schema.js";
 import { tokenSchema } from "@/auth/auth.schema.js";
+import { rateLimiter } from "@/rate-limiter/rateLimiter.js";
 
 class OneTimeTokenService {
   private generateOneTimeToken() {
@@ -82,6 +83,8 @@ class OneTimeTokenService {
         "email_verification",
       );
       await client.query("COMMIT");
+
+      rateLimiter.reset(verifiedUserId); // clear rate-limit map
     } catch (err) {
       await client.query("ROLLBACK");
       throw err;
