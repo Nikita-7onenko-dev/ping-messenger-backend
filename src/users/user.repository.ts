@@ -33,7 +33,7 @@ class UserRepository {
       const [user] = result.rows;
 
       if (!user) {
-        throw ApiError.internal();
+        throw ApiError.internal("Failed to create user");
       }
 
       resource = "user_credentials";
@@ -66,7 +66,25 @@ class UserRepository {
 
       const [session] = sessionResult.rows;
 
-      if (!session) throw ApiError.internal();
+      if (!session) {
+        throw ApiError.internal(
+          `Failed to create session for user ${user.userId}`,
+        );
+      }
+
+      resource = "user_settings";
+
+      const settingsResult = await client.query(
+        `INSERT INTO user_settings (user_id, locale)
+          VALUES ($1, $2)`,
+        [user.userId, userInput.locale],
+      );
+
+      if (settingsResult.rowCount !== 1) {
+        throw ApiError.internal(
+          `Failed to create settings for user ${user.userId}`,
+        );
+      }
 
       await client.query("COMMIT");
 

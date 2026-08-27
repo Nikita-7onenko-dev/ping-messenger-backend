@@ -38,9 +38,8 @@ class AuthService {
       userAgent,
       ipAddress,
       ...geoLocation,
+      locale,
     });
-
-    await userSettingsService.setLocale(createUserResult.userId, locale);
 
     const accessToken = tokenService.generateAccessToken({
       userId: createUserResult.userId,

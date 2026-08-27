@@ -1,5 +1,5 @@
 import { translateDBError } from "@/database/errors/translateDBError.js";
-import type { Locale } from "./settings.types.js";
+import type { Locale, UserSettings } from "./settings.types.js";
 import { pool } from "@/database/database.config.js";
 
 class UserSettingsRepository {
@@ -14,6 +14,21 @@ class UserSettingsRepository {
       );
     } catch (err) {
       throw translateDBError(err, "user_settings");
+    }
+  }
+
+  async getSettings(userId: string) {
+    try {
+      const result = await pool.query<UserSettings>(
+        `SELECT *
+          FROM user_settings
+          WHERE user_id = $1`,
+        [userId],
+      );
+      const [settings] = result.rows;
+      return settings;
+    } catch (err) {
+      translateDBError(err, "user_settings");
     }
   }
 }

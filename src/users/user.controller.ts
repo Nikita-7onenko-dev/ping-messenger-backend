@@ -40,8 +40,9 @@ class UserController {
 
   async getMySessions(req: Request, res: Response) {
     const id = req.userId!; // checked in middleware
+    const sessionId = req.sessionId!; // check in middleware
 
-    const sessions = await sessionService.getAll(id);
+    const sessions = await sessionService.getAll(id, sessionId);
     res.status(200).json(sessions);
   }
 

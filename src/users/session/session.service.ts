@@ -4,6 +4,7 @@ import { geoService } from "@/geo/geo.service.js";
 import { ApiError } from "@/exceptions/ApiError.js";
 import type { Tokens } from "@/token/token.types.js";
 import { isExpired } from "@/common/time/isExpired.js";
+import type { Session } from "./session.types.js";
 
 class SessionService {
   async create(
@@ -52,8 +53,12 @@ class SessionService {
     return { accessToken, refreshToken };
   }
 
-  async getAll(userId: string) {
-    return await sessionRepository.getAll(userId);
+  async getAll(userId: string, sessionId: string) {
+    const sessions = await sessionRepository.getAll(userId);
+    return sessions.map((session) => ({
+      ...session,
+      current: sessionId === session.id,
+    }));
   }
 
   async updateMetadata(

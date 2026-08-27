@@ -1,13 +1,13 @@
 import { z } from "zod";
 import { updateUserSchema, type createUserSchema } from "./user.schema.js";
-import type { Session, CreateSessionInput } from "./session/session.types.js";
-import type { Tokens } from "@/token/token.types.js";
+import type { CreateSessionInput } from "./session/session.types.js";
+import type { UserSettings } from "./settings/settings.types.js";
 
 export type CreateUserInput = Omit<
   z.infer<typeof createUserSchema>,
   "password"
 > &
-  Omit<CreateSessionInput, "userId"> & { passwordHash: string };
+  Omit<CreateSessionInput, "userId"> & { passwordHash: string } & UserSettings;
 
 export type User = {
   id: string;

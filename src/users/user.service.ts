@@ -1,6 +1,7 @@
 import { userRepository } from "./user.repository.js";
 import { ApiError } from "@/exceptions/ApiError.js";
 import { updateUserSchema } from "./user.schema.js";
+import { userSettingsRepository } from "./settings/settings.repository.js";
 
 class UserService {
   async getByUsername(username: string) {
@@ -14,7 +15,11 @@ class UserService {
   async getMe(id: string) {
     const user = await userRepository.getById(id);
     if (!user) throw ApiError.internal("Authenticated user not found");
-    return user;
+    const settings = await userSettingsRepository.getSettings(id);
+    if (!settings) {
+      throw ApiError.internal(`Related user ${id}: settings not found`);
+    }
+    return { ...user, settings };
   }
 
   async updateMe(id: string, updateData: unknown) {
