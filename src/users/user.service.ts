@@ -2,6 +2,7 @@ import { userRepository } from "./user.repository.js";
 import { ApiError } from "@/exceptions/ApiError.js";
 import { updateUserSchema } from "./user.schema.js";
 import { userSettingsRepository } from "./settings/settings.repository.js";
+import { currentAvatarSchema } from "./avatar/avatar.schema.js";
 
 class UserService {
   async getByUsername(username: string) {
@@ -26,6 +27,12 @@ class UserService {
     const validData = updateUserSchema.parse(updateData);
     const isUpdated = await userRepository.updateById(id, validData);
     if (!isUpdated) throw ApiError.internal("Authenticated user not found");
+  }
+
+  async setCurrentAvatar(userId: string, reqBody: unknown) {
+    const { avatarId } = currentAvatarSchema.parse(reqBody);
+    const isSuccess = await userRepository.setCurrentAvatar(userId, avatarId);
+    if (!isSuccess) throw ApiError.notFound();
   }
 
   async deleteMe(id: string) {

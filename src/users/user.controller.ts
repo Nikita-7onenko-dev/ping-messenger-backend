@@ -38,6 +38,12 @@ class UserController {
     res.sendStatus(204);
   }
 
+  async setCurrentAvatar(req: Request, res: Response) {
+    const userId = req.userId!; // checked in middleware
+    await userService.setCurrentAvatar(userId, req.body);
+    res.sendStatus(204);
+  }
+
   async getMySessions(req: Request, res: Response) {
     const id = req.userId!; // checked in middleware
     const sessionId = req.sessionId!; // check in middleware
@@ -54,17 +60,9 @@ class UserController {
 
   async endSessionById(req: Request, res: Response) {
     const userId = req.userId!; // checked in middleware
-    const { sessionId } = req.params;
+    const sessionId = req.sessionId!; // checked in middleware
 
-    if (!sessionId) {
-      throw ApiError.badRequest("MISSING_PARAMETER");
-    }
-
-    if (Array.isArray(sessionId)) {
-      throw ApiError.badRequest("INVALID_PARAMETER_FORMAT");
-    }
-
-    await sessionService.endById(sessionId, userId!);
+    await sessionService.endById(sessionId, userId);
     res.sendStatus(204);
   }
 }

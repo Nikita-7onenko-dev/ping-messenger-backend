@@ -172,6 +172,29 @@ class UserRepository {
     }
   }
 
+  async setCurrentAvatar(userId: string, avatarId: string | null) {
+    try {
+      const result = await pool.query(
+        `UPDATE users AS u
+       SET current_avatar_id = $2
+       WHERE u.id = $1
+         AND (
+           $2 IS NULL
+           OR EXISTS (
+             SELECT 1
+             FROM user_avatars AS ua
+             WHERE ua.id = $2
+               AND ua.user_id = $1
+           )
+         )`,
+        [userId, avatarId],
+      );
+      return result.rowCount === 1;
+    } catch (err) {
+      throw translateDBError(err, "users");
+    }
+  }
+
   async deleteById(userId: string) {
     const client = await pool.connect();
     let resource = "user";
@@ -204,6 +227,20 @@ class UserRepository {
       resource = "user_sessions";
       await client.query(
         `DELETE FROM user_sessions
+          WHERE user_id = $1`,
+        [userId],
+      );
+
+      resource = "user_one_time_tokens";
+      await client.query(
+        `DELETE FROM user_one_time_tokens
+          WHERE user_id = $1`,
+        [userId],
+      );
+
+      resource = "user_settings";
+      await client.query(
+        `DELETE FROM user_settings
           WHERE user_id = $1`,
         [userId],
       );

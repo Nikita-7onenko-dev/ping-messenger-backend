@@ -54,6 +54,13 @@ userRouter.post(
   avatarController.upload,
 );
 
+userRouter.patch(
+  "/me/current-avatar",
+  authenticationMiddleware,
+  emailVerificationMiddleware,
+  userController.setCurrentAvatar,
+);
+
 // Public
 userRouter.get("/:username", userController.getByUsername);
 
