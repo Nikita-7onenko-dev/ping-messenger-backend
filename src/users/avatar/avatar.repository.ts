@@ -53,6 +53,33 @@ class AvatarRepository {
       throw translateDBError(err, "user_avatars");
     }
   }
+
+  async getByIdForUser(userId: string, avatarId: string) {
+    try {
+      const result = await pool.query<{ publicId: string }>(
+        `SELECT public_id AS "publicId"
+          FROM user_avatars
+          WHERE user_id = $1 AND id = $2`,
+        [userId, avatarId],
+      );
+      const [avatar] = result.rows;
+      return avatar;
+    } catch (err) {
+      throw translateDBError(err, "user_avatars");
+    }
+  }
+
+  async delete(userId: string, avatarId: string) {
+    try {
+      const result = await pool.query(
+        `DELETE FROM user_avatars
+          WHERE user_id = $1 AND id = $2`,
+        [userId, avatarId],
+      );
+    } catch (err) {
+      throw translateDBError(err, "user_avatars");
+    }
+  }
 }
 
 const avatarRepository = new AvatarRepository();

@@ -3,6 +3,8 @@ import { avatarRepository } from "./avatar.repository.js";
 import { avatarTransformationsSchema } from "./avatar.schema.js";
 import { validateCloudinaryWebhook } from "@/webhook/webhook.schema.js";
 import { buildAvatar } from "./build-avatar.js";
+import { ApiError } from "@/exceptions/ApiError.js";
+import { avatarDestroy } from "./avatar.destroy.js";
 
 class AvatarService {
   async upload(userId: string, reqBody: unknown) {
@@ -52,6 +54,14 @@ class AvatarService {
       }),
       isCurrent: avatar.isCurrent,
     }));
+  }
+
+  async delete(userId: string, avatarId: string) {
+    const avatar = await avatarRepository.getByIdForUser(userId, avatarId);
+    if (!avatar) throw ApiError.notFound("AVATAR_NOT_FOUND");
+
+    await avatarDestroy(avatar.publicId);
+    await avatarRepository.delete(userId, avatarId);
   }
 }
 

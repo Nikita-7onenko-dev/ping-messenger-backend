@@ -1,11 +1,21 @@
 import type { Request, Response } from "express";
 import { avatarService } from "./avatar.service.js";
+import { requireStringParam } from "@/common/http/requireStringParam.js";
 
 class AvatarController {
   async upload(req: Request, res: Response) {
     const userId = req.userId!; // checked in middleware
     const response = await avatarService.upload(userId, req.body);
     res.status(200).json(response);
+  }
+
+  async delete(req: Request, res: Response) {
+    const userId = req.userId!; // checked in middleware
+    const { avatarId } = req.params;
+    const validAvatarId = requireStringParam(avatarId);
+
+    await avatarService.delete(userId, validAvatarId);
+    res.sendStatus(204);
   }
 }
 

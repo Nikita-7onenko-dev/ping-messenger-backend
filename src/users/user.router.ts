@@ -47,20 +47,6 @@ userRouter.delete(
 );
 
 // Avatar
-userRouter.get(
-  "/me/avatars",
-  authenticationMiddleware,
-  emailVerificationMiddleware,
-  userController.getMyGallery,
-);
-
-userRouter.get(
-  "/:username/avatars",
-  authenticationMiddleware,
-  emailVerificationMiddleware,
-  userController.getPublicGallery,
-);
-
 userRouter.post(
   "/me/avatars/upload",
   authenticationMiddleware,
@@ -68,11 +54,32 @@ userRouter.post(
   avatarController.upload,
 );
 
+userRouter.get(
+  "/me/avatars",
+  authenticationMiddleware,
+  emailVerificationMiddleware,
+  userController.getMyGallery,
+);
+
 userRouter.patch(
   "/me/current-avatar",
   authenticationMiddleware,
   emailVerificationMiddleware,
   userController.setCurrentAvatar,
+);
+
+userRouter.delete(
+  "/me/avatars/:avatarId",
+  authenticationMiddleware,
+  emailVerificationMiddleware,
+  avatarController.delete,
+);
+
+userRouter.get(
+  "/:username/avatars",
+  authenticationMiddleware,
+  emailVerificationMiddleware,
+  userController.getPublicGallery,
 );
 
 // Public

@@ -1,36 +1,23 @@
 import type { Request, Response } from "express";
 import { userService } from "./user.service.js";
-import { ApiError } from "@/exceptions/ApiError.js";
 import { sessionService } from "./session/session.service.js";
 import { avatarService } from "./avatar/avatar.service.js";
+import { requireStringParam } from "@/common/http/requireStringParam.js";
 
 class UserController {
   async getByUsername(req: Request, res: Response) {
     const { username } = req.params;
+    const validUsername = requireStringParam(username);
 
-    if (!username) {
-      throw ApiError.badRequest("MISSING_PARAMETER");
-    }
-
-    if (Array.isArray(username)) {
-      throw ApiError.badRequest("INVALID_PARAMETER_FORMAT");
-    }
-
-    const user = await userService.getByUsername(username);
+    const user = await userService.getByUsername(validUsername);
     res.status(200).json(user);
   }
 
   async getPublicGallery(req: Request, res: Response) {
     const { username } = req.params;
+    const validUsername = requireStringParam(username);
 
-    if (!username) {
-      throw ApiError.badRequest("MISSING_PARAMETER");
-    }
-
-    if (Array.isArray(username)) {
-      throw ApiError.badRequest("INVALID_PARAMETER_FORMAT");
-    }
-    const user = await userService.getByUsername(username);
+    const user = await userService.getByUsername(validUsername);
     const gallery = await avatarService.getGallery(user.id);
     res.status(200).json(gallery);
   }
