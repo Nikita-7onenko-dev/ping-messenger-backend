@@ -47,6 +47,20 @@ userRouter.delete(
 );
 
 // Avatar
+userRouter.get(
+  "/me/avatars",
+  authenticationMiddleware,
+  emailVerificationMiddleware,
+  userController.getMyGallery,
+);
+
+userRouter.get(
+  "/:username/avatars",
+  authenticationMiddleware,
+  emailVerificationMiddleware,
+  userController.getPublicGallery,
+);
+
 userRouter.post(
   "/me/avatars/upload",
   authenticationMiddleware,

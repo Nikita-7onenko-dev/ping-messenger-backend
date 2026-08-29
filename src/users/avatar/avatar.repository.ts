@@ -1,6 +1,7 @@
 import { translateDBError } from "@/database/errors/translateDBError.js";
 import { pool } from "@/database/database.config.js";
 import { ApiError } from "@/exceptions/ApiError.js";
+import type { AvatarFromGallery } from "./avatar.types.js";
 
 class AvatarRepository {
   async preload(userId: string, transformations: string) {
@@ -28,6 +29,26 @@ class AvatarRepository {
         [avatarId, publicId],
       );
       return result.rowCount === 1;
+    } catch (err) {
+      throw translateDBError(err, "user_avatars");
+    }
+  }
+
+  async getGallery(userId: string) {
+    try {
+      const result = await pool.query<AvatarFromGallery>(
+        `SELECT
+          ua.id AS "avatarId",
+          ua.public_id AS "publicId",
+          ua.transformations,
+          (ua.id = u.current_avatar_id) AS "isCurrent"
+        FROM user_avatars AS ua
+        JOIN users AS u
+          ON u.id = ua.user_id
+        WHERE ua.user_id = $1`,
+        [userId],
+      );
+      return result.rows;
     } catch (err) {
       throw translateDBError(err, "user_avatars");
     }

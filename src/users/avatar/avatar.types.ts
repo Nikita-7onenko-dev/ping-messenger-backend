@@ -1,4 +1,4 @@
-import type { User } from "../user.types.js";
+import type { PublicUser, User } from "../user.types.js";
 
 export type AvatarTransformations = {
   x: number;
@@ -7,14 +7,16 @@ export type AvatarTransformations = {
   flipHorizontal: boolean;
 };
 
-export type AvatarVariant = "original" | "profile" | "thumbnail";
+export type AvatarVariant = "cropped" | "profile" | "thumbnail";
 
-export type UserAvatar =
-  | { avatarId: null }
-  | {
-      avatarId: string;
-      publicId: string;
-      transformations: AvatarTransformations;
-    };
+export type Avatar = {
+  avatarId: string;
+  publicId: string;
+  transformations: AvatarTransformations;
+};
 
-export type UserWithAvatar = User & UserAvatar;
+export type UserWithAvatar = User & (Avatar | { avatarId: null });
+
+export type PublicUserWithAvatar = PublicUser & (Avatar | { avatarId: null });
+
+export type AvatarFromGallery = Avatar & { isCurrent: boolean };

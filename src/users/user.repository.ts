@@ -5,7 +5,6 @@ import { ApiError } from "@/exceptions/ApiError.js";
 import type {
   CreateUserInput,
   PublicUser,
-  User,
   CreateUserResult,
   UpdateUserInput,
 } from "./user.types.js";
@@ -122,7 +121,7 @@ class UserRepository {
           u.username,
           u.email,
           ua.id AS "avatarId",
-          ua.public_id AS "publicId" ,
+          ua.public_id AS "publicId",
           ua.transformations
         FROM users AS u
         LEFT JOIN LATERAL (

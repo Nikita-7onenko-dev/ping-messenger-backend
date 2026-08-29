@@ -3,7 +3,7 @@ import type { AvatarTransformations, AvatarVariant } from "./avatar.types.js";
 import type { TransformationOptions } from "cloudinary";
 
 const avatarVariants: Record<
-  Exclude<AvatarVariant, "original">,
+  Exclude<AvatarVariant, "cropped">,
   TransformationOptions
 > = {
   profile: {
@@ -33,7 +33,7 @@ export function buildAvatarUrl(
   };
 
   const variantTransformation =
-    variant === "original" ? undefined : avatarVariants[variant];
+    variant === "cropped" ? undefined : avatarVariants[variant];
 
   return cloudinary.url(publicId, {
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
