@@ -5,6 +5,8 @@ export type AvatarTransformations = {
   flipHorizontal: boolean;
 };
 
+export type AvatarVariant = "original" | "profile" | "thumbnail";
+
 export type Avatar = {
   id: string;
   publicId: string;
