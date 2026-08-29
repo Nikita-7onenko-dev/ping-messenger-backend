@@ -4,7 +4,6 @@ import { updateUserSchema } from "./user.schema.js";
 import { userSettingsRepository } from "./settings/settings.repository.js";
 import { currentAvatarSchema } from "./avatar/avatar.schema.js";
 import { buildAvatarUrl } from "./avatar/avatar.url.builder.js";
-import { email } from "zod";
 
 class UserService {
   async getByUsername(username: string) {
@@ -12,7 +11,18 @@ class UserService {
     if (!user) {
       throw ApiError.notFound("USER_NOT_FOUND");
     }
-    return user;
+
+    return {
+      id: user.id,
+      name: user.name,
+      username: user.username,
+      avatar: {
+        id: user.avatarId,
+        url: user.avatarId
+          ? buildAvatarUrl(user.publicId, user.transformations, "cropped")
+          : null,
+      },
+    };
   }
 
   async getMe(id: string) {

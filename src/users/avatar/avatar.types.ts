@@ -15,8 +15,4 @@ export type Avatar = {
   transformations: AvatarTransformations;
 };
 
-export type UserWithAvatar = User & (Avatar | { avatarId: null });
-
-export type PublicUserWithAvatar = PublicUser & (Avatar | { avatarId: null });
-
 export type AvatarFromGallery = Avatar & { isCurrent: boolean };
