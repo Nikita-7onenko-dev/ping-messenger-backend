@@ -5,6 +5,7 @@ import { errorMiddleware } from "./middleware/error.middleware.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { authRouter } from "./auth/auth.router.js";
+import { webhookRouter } from "./webhook/webhook.router.js";
 
 const PORT = process.env.PORT || 5000;
 const app = express();
@@ -20,6 +21,7 @@ app.use(cookieParser());
 
 app.use("/auth", authRouter);
 app.use("/users", userRouter);
+app.use("/webhooks", webhookRouter);
 app.get("/ping", (_, res) => res.json({ message: "pong" }));
 
 app.use(errorMiddleware);
