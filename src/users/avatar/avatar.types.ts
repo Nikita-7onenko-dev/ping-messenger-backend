@@ -1,5 +1,3 @@
-import type { PublicUser, User } from "../user.types.js";
-
 export type AvatarTransformations = {
   x: number;
   y: number;

@@ -2,7 +2,7 @@ import cloudinary from "@/config/cloudinary.js";
 import { avatarRepository } from "./avatar.repository.js";
 import { avatarTransformationsSchema } from "./avatar.schema.js";
 import { validateCloudinaryWebhook } from "@/webhook/webhook.schema.js";
-import { buildAvatarUrl } from "./avatar.url.builder.js";
+import { buildAvatar } from "./build-avatar.js";
 
 class AvatarService {
   async upload(userId: string, reqBody: unknown) {
@@ -44,8 +44,12 @@ class AvatarService {
   async getGallery(userId: string) {
     const gallery = await avatarRepository.getGallery(userId);
     return gallery.map((avatar) => ({
-      id: avatar.avatarId,
-      url: buildAvatarUrl(avatar.publicId, avatar.transformations, "cropped"),
+      ...buildAvatar({
+        avatarId: avatar.avatarId,
+        publicId: avatar.publicId,
+        transformations: avatar.transformations,
+        variant: "cropped",
+      }),
       isCurrent: avatar.isCurrent,
     }));
   }

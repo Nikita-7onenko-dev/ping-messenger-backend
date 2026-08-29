@@ -19,7 +19,7 @@ const avatarVariants: Record<
   },
 };
 
-export function buildAvatarUrl(
+function buildAvatarUrl(
   publicId: string,
   transformations: AvatarTransformations,
   variant: AvatarVariant,
@@ -29,6 +29,7 @@ export function buildAvatarUrl(
     height: transformations.size,
     x: transformations.x,
     y: transformations.y,
+    flipHorizontal: transformations.flipHorizontal,
     crop: "crop",
   };
 
@@ -42,4 +43,39 @@ export function buildAvatarUrl(
       ...(variantTransformation ? [variantTransformation] : []),
     ],
   });
+}
+
+type BuildAvatarInput =
+  | {
+      avatarId: string;
+      publicId: null;
+      transformations: null;
+      variant: null;
+    }
+  | {
+      avatarId: string;
+      publicId: string;
+      transformations: AvatarTransformations;
+      variant: AvatarVariant;
+    };
+
+export function buildAvatar({
+  avatarId,
+  publicId,
+  transformations,
+  variant,
+}: BuildAvatarInput) {
+  if (!publicId) {
+    return {
+      id: avatarId,
+      url: null,
+      status: "pending",
+    };
+  }
+
+  return {
+    id: avatarId,
+    url: buildAvatarUrl(publicId, transformations, variant),
+    status: "ready",
+  };
 }
