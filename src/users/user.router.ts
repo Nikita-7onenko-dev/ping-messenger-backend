@@ -2,6 +2,7 @@ import { Router } from "express";
 import { userController } from "./user.controller.js";
 import { authenticationMiddleware } from "@/middleware/authentication.middleware.js";
 import { emailVerificationMiddleware } from "@/middleware/email-verification.middleware.js";
+import { avatarController } from "./avatar/avatar.controller.js";
 
 const userRouter = Router();
 
@@ -43,6 +44,14 @@ userRouter.delete(
   authenticationMiddleware,
   emailVerificationMiddleware,
   userController.endSessionById,
+);
+
+// Avatar
+userRouter.post(
+  "/me/avatars/upload",
+  authenticationMiddleware,
+  emailVerificationMiddleware,
+  avatarController.upload,
 );
 
 // Public

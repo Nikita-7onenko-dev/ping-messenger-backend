@@ -7,7 +7,7 @@ import { hashWithSha256 } from "@/common/crypto/hashWithSha256.js";
 import { isExpired } from "@/common/time/isExpired.js";
 import { isStillFresh } from "@/common/time/isStillFresh.js";
 import { mailService } from "@/mail/mail.service.js";
-import { userIdSchema } from "@/users/user.schema.js";
+import { idSchema } from "@/users/user.schema.js";
 import { tokenSchema } from "@/auth/auth.schema.js";
 import { rateLimiter } from "@/rate-limiter/rateLimiter.js";
 
@@ -51,7 +51,7 @@ class OneTimeTokenService {
   }
 
   async activateEmail(userId: unknown, receivedToken: unknown) {
-    const verifiedUserId = userIdSchema.parse(userId);
+    const verifiedUserId = idSchema.parse(userId);
     const verifiedReceivedToken = tokenSchema.parse(receivedToken);
     const client = await pool.connect();
     try {
