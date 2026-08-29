@@ -3,6 +3,8 @@ import { ApiError } from "@/exceptions/ApiError.js";
 import { updateUserSchema } from "./user.schema.js";
 import { userSettingsRepository } from "./settings/settings.repository.js";
 import { currentAvatarSchema } from "./avatar/avatar.schema.js";
+import { buildAvatarUrl } from "./avatar/avatar.url.builder.js";
+import { email } from "zod";
 
 class UserService {
   async getByUsername(username: string) {
@@ -20,7 +22,22 @@ class UserService {
     if (!settings) {
       throw ApiError.internal(`Related user ${id}: settings not found`);
     }
-    return { ...user, settings };
+
+    return {
+      user: {
+        id,
+        name: user.name,
+        username: user.username,
+        email: user.email,
+        avatar: {
+          id: user.avatarId,
+          url: user.avatarId
+            ? buildAvatarUrl(user.publicId, user.transformations, "profile")
+            : null,
+        },
+      },
+      settings,
+    };
   }
 
   async updateMe(id: string, updateData: unknown) {

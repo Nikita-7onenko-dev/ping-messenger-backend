@@ -10,6 +10,7 @@ import type {
   UpdateUserInput,
 } from "./user.types.js";
 import type { PoolClient } from "pg";
+import type { UserWithAvatar } from "./avatar/avatar.types.js";
 
 const updateUserAllowedFields = new Set<keyof UpdateUserInput>([
   "name",
@@ -114,10 +115,29 @@ class UserRepository {
 
   async getById(id: string) {
     try {
-      const result = await pool.query<User>(
-        `SELECT id, name, username, email
-          FROM users
-          WHERE id = $1`,
+      const result = await pool.query<UserWithAvatar>(
+        `SELECT
+          u.id,
+          u.name,
+          u.username,
+          u.email,
+          ua.id AS "avatarId",
+          ua.public_id AS "publicId" ,
+          ua.transformations
+        FROM users AS u
+        LEFT JOIN LATERAL (
+          SELECT
+            id,
+            public_id,
+            transformations
+          FROM user_avatars
+          WHERE user_id = u.id
+          ORDER BY
+            (id = u.current_avatar_id) DESC,
+            created_at DESC
+          LIMIT 1
+        ) AS ua ON true
+        WHERE u.id = $1;`,
         [id],
       );
       const [user] = result.rows;

@@ -20,7 +20,7 @@ class UserSettingsRepository {
   async getSettings(userId: string) {
     try {
       const result = await pool.query<UserSettings>(
-        `SELECT *
+        `SELECT locale
           FROM user_settings
           WHERE user_id = $1`,
         [userId],
@@ -28,7 +28,7 @@ class UserSettingsRepository {
       const [settings] = result.rows;
       return settings;
     } catch (err) {
-      translateDBError(err, "user_settings");
+      throw translateDBError(err, "user_settings");
     }
   }
 }
