@@ -223,6 +223,23 @@ class UserRepository {
     }
   }
 
+  async getAvatarsOfDeletedUsers() {
+    try {
+      const result = await pool.query<{ userId: string; avatarId: string }>(
+        `SELECT
+          ua.user_id AS "userId",
+          ua.id AS "avatarId"
+        FROM user_avatars AS ua
+        JOIN users AS u
+          ON u.id = ua.user_id
+        WHERE u.is_deleted = TRUE;`,
+      );
+      return result.rows;
+    } catch (err) {
+      throw translateDBError(err, "user");
+    }
+  }
+
   async deleteById(userId: string) {
     const client = await pool.connect();
     let resource = "user";
