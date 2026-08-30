@@ -3,7 +3,7 @@ import { ApiError } from "@/exceptions/ApiError.js";
 import { updateUserSchema } from "./user.schema.js";
 import { userSettingsRepository } from "./settings/settings.repository.js";
 import { currentAvatarSchema } from "./avatar/avatar.schema.js";
-import { buildAvatar } from "./avatar/build-avatar.js";
+import { buildAvatarUrl } from "./avatar/build-avatar.js";
 
 class UserService {
   async getByUsername(username: string) {
@@ -12,25 +12,16 @@ class UserService {
       throw ApiError.notFound("USER_NOT_FOUND");
     }
 
-    if (!user.avatarId) {
-      return {
-        id: user.id,
-        name: user.name,
-        username: user.username,
-        avatar: null,
-      };
-    }
-
     return {
       id: user.id,
       name: user.name,
       username: user.username,
-      avatar: buildAvatar({
-        avatarId: user.avatarId,
-        publicId: user.publicId,
-        transformations: user.transformations,
-        variant: "cropped",
-      }),
+      avatar: {
+        id: user.avatarId,
+        url: user.avatarId
+          ? buildAvatarUrl(user.avatarId, user.transformations, "cropped")
+          : null,
+      },
     };
   }
 
@@ -42,31 +33,18 @@ class UserService {
       throw ApiError.internal(`Related user ${id}: settings not found`);
     }
 
-    if (!user.avatarId) {
-      return {
-        user: {
-          id,
-          name: user.name,
-          username: user.username,
-          email: user.email,
-          avatar: null,
-        },
-        settings,
-      };
-    }
-
     return {
       user: {
         id,
         name: user.name,
         username: user.username,
         email: user.email,
-        avatar: buildAvatar({
-          avatarId: user.avatarId,
-          publicId: user.publicId,
-          transformations: user.transformations,
-          variant: "cropped",
-        }),
+        avatar: {
+          id: user.avatarId,
+          url: user.avatarId
+            ? buildAvatarUrl(user.avatarId, user.transformations, "profile")
+            : null,
+        },
       },
       settings,
     };

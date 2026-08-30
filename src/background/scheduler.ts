@@ -29,3 +29,5 @@ cron.schedule("0 3 * * *", cleanupRateLimiterJob, {
   timezone: CRON_TIMEZONE,
   noOverlap: true,
 });
+
+console.log("[Scheduler] started");

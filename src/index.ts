@@ -6,6 +6,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { authRouter } from "./auth/auth.router.js";
 import { webhookRouter } from "./webhook/webhook.router.js";
+import "@/background/scheduler.js";
 
 const PORT = process.env.PORT || 5000;
 const app = express();

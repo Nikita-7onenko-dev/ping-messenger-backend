@@ -19,11 +19,13 @@ const avatarVariants: Record<
   },
 };
 
-function buildAvatarUrl(
-  publicId: string,
+export function buildAvatarUrl(
+  avatarId: string,
   transformations: AvatarTransformations,
   variant: AvatarVariant,
 ) {
+  const publicId = `Ping/avatars/${avatarId}`;
+
   const userTransformations: TransformationOptions = {
     width: transformations.size,
     height: transformations.size,
@@ -43,39 +45,4 @@ function buildAvatarUrl(
       ...(variantTransformation ? [variantTransformation] : []),
     ],
   });
-}
-
-type BuildAvatarInput =
-  | {
-      avatarId: string;
-      publicId: null;
-      transformations: null;
-      variant: null;
-    }
-  | {
-      avatarId: string;
-      publicId: string;
-      transformations: AvatarTransformations;
-      variant: AvatarVariant;
-    };
-
-export function buildAvatar({
-  avatarId,
-  publicId,
-  transformations,
-  variant,
-}: BuildAvatarInput) {
-  if (!publicId) {
-    return {
-      id: avatarId,
-      url: null,
-      status: "pending",
-    };
-  }
-
-  return {
-    id: avatarId,
-    url: buildAvatarUrl(publicId, transformations, variant),
-    status: "ready",
-  };
 }

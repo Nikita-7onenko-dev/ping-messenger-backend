@@ -100,12 +100,11 @@ class UserRepository {
   async getByUsername(username: string) {
     try {
       const result = await pool.query<PublicUser>(
-        `SELECT u.id, u.name, u.username, ua.id AS "avatarId", ua.public_id AS "publicId", ua.transformations
+        `SELECT u.id, u.name, u.username, ua.id AS "avatarId", ua.transformations
           FROM users AS u
           LEFT JOIN LATERAL (
             SELECT
               id,
-              public_id,
               transformations
             FROM user_avatars
             WHERE user_id = u.id
@@ -133,13 +132,11 @@ class UserRepository {
           u.username,
           u.email,
           ua.id AS "avatarId",
-          ua.public_id AS "publicId",
           ua.transformations
         FROM users AS u
         LEFT JOIN LATERAL (
           SELECT
             id,
-            public_id,
             transformations
           FROM user_avatars
           WHERE user_id = u.id

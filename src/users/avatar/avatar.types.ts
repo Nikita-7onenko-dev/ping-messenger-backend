@@ -9,7 +9,6 @@ export type AvatarVariant = "cropped" | "profile" | "thumbnail";
 
 export type Avatar = {
   avatarId: string;
-  publicId: string;
   transformations: AvatarTransformations;
 };
 

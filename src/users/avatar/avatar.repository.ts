@@ -20,13 +20,13 @@ class AvatarRepository {
     }
   }
 
-  async completeUpload(avatarId: string, publicId: string) {
+  async completeUpload(avatarId: string) {
     try {
       const result = await pool.query(
         `UPDATE user_avatars
-        SET public_id = $2
+        SET confirmed = true
         WHERE id = $1`,
-        [avatarId, publicId],
+        [avatarId],
       );
       return result.rowCount === 1;
     } catch (err) {
@@ -39,7 +39,6 @@ class AvatarRepository {
       const result = await pool.query<AvatarFromGallery>(
         `SELECT
           ua.id AS "avatarId",
-          ua.public_id AS "publicId",
           ua.transformations,
           (ua.id = u.current_avatar_id) AS "isCurrent"
         FROM user_avatars AS ua
@@ -56,14 +55,13 @@ class AvatarRepository {
 
   async getByIdForUser(userId: string, avatarId: string) {
     try {
-      const result = await pool.query<{ publicId: string }>(
-        `SELECT public_id AS "publicId"
+      const result = await pool.query<{ avatarId: string }>(
+        `SELECT id AS "avatarId"
           FROM user_avatars
           WHERE user_id = $1 AND id = $2`,
         [userId, avatarId],
       );
-      const [avatar] = result.rows;
-      return avatar;
+      return result.rowCount === 1;
     } catch (err) {
       throw translateDBError(err, "user_avatars");
     }
@@ -71,7 +69,7 @@ class AvatarRepository {
 
   async delete(userId: string, avatarId: string) {
     try {
-      const result = await pool.query(
+      await pool.query(
         `DELETE FROM user_avatars
           WHERE user_id = $1 AND id = $2`,
         [userId, avatarId],

@@ -3,17 +3,11 @@ export type GeoLocation = {
   city: string | null;
 };
 
-export type GeoCacheEntry = GeoLocation & {
+export type GeoCache = GeoLocation & {
   ipAddress: string;
 };
 
 export type GeoApiResponse = {
-  country: string;
-  city: string | null;
-};
-
-export type GeoCacheRow = {
-  ip_address: string;
   country: string;
   city: string | null;
 };

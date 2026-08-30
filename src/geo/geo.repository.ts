@@ -1,12 +1,12 @@
 import { pool } from "@/database/database.config.js";
 import { translateDBError } from "@/database/errors/translateDBError.js";
-import type { GeoCacheRow, GeoCacheEntry, GeoLocation } from "./geo.types.js";
+import type { GeoCache, GeoLocation } from "./geo.types.js";
 
 class GeoRepository {
   async getCachedLocation(ip: string): Promise<GeoLocation | null> {
     try {
-      const result = await pool.query<GeoCacheRow>(
-        `SELECT ip_address, country, city
+      const result = await pool.query<GeoLocation>(
+        `SELECT country, city
           FROM geo_cache
           WHERE ip_address = $1`,
         [ip],
@@ -25,7 +25,7 @@ class GeoRepository {
     }
   }
 
-  async cacheLocation(geoData: GeoCacheEntry) {
+  async cacheLocation(geoData: GeoCache) {
     try {
       await pool.query(
         `INSERT INTO geo_cache (ip_address, country, city)

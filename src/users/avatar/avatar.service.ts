@@ -2,7 +2,7 @@ import cloudinary from "@/config/cloudinary.js";
 import { avatarRepository } from "./avatar.repository.js";
 import { avatarTransformationsSchema } from "./avatar.schema.js";
 import { validateCloudinaryWebhook } from "@/webhook/webhook.schema.js";
-import { buildAvatar } from "./build-avatar.js";
+import { buildAvatarUrl } from "./build-avatar.js";
 import { ApiError } from "@/exceptions/ApiError.js";
 import { avatarDestroy } from "./avatar.destroy.js";
 
@@ -36,8 +36,8 @@ class AvatarService {
   }
 
   async completeUpload(reqBody: unknown) {
-    const { avatarId, publicId } = validateCloudinaryWebhook(reqBody);
-    const isSuccess = await avatarRepository.completeUpload(avatarId, publicId);
+    const avatarId = validateCloudinaryWebhook(reqBody);
+    const isSuccess = await avatarRepository.completeUpload(avatarId);
     if (!isSuccess) {
       console.error(`Avatar not found for Cloudinary webhook: ${avatarId}`);
     }
@@ -46,21 +46,22 @@ class AvatarService {
   async getGallery(userId: string) {
     const gallery = await avatarRepository.getGallery(userId);
     return gallery.map((avatar) => ({
-      ...buildAvatar({
-        avatarId: avatar.avatarId,
-        publicId: avatar.publicId,
-        transformations: avatar.transformations,
-        variant: "cropped",
-      }),
+      id: avatar.avatarId,
+      url: buildAvatarUrl(avatar.avatarId, avatar.transformations, "cropped"),
       isCurrent: avatar.isCurrent,
     }));
   }
 
   async delete(userId: string, avatarId: string) {
-    const avatar = await avatarRepository.getByIdForUser(userId, avatarId);
-    if (!avatar) throw ApiError.notFound("AVATAR_NOT_FOUND");
+    const isAvatarExists = await avatarRepository.getByIdForUser(
+      userId,
+      avatarId,
+    );
+    if (!isAvatarExists) throw ApiError.notFound("AVATAR_NOT_FOUND");
 
-    await avatarDestroy(avatar.publicId);
+    const publicId = `Ping/avatars/${avatarId}`;
+
+    await avatarDestroy(publicId);
     await avatarRepository.delete(userId, avatarId);
   }
 }

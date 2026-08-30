@@ -16,8 +16,5 @@ export function validateCloudinaryWebhook(reqBody: unknown) {
   }
 
   const validAvatarId = idSchema.parse(avatarId);
-  return {
-    publicId: meta.public_id,
-    avatarId: validAvatarId,
-  };
+  return validAvatarId;
 }
