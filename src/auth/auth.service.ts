@@ -49,6 +49,7 @@ class AuthService {
     await oneTimeTokenService.createEmailVerifyLink(
       createUserResult.userId,
       createUserResult.email,
+      locale,
     );
 
     return {

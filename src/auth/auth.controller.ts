@@ -34,7 +34,8 @@ class AuthController {
 
   async activationResend(req: Request, res: Response) {
     const userId = req.userId!; // checked in auth middleware
-    await oneTimeTokenService.resendEmailVerification(userId);
+    const locale = resolveLocale(req);
+    await oneTimeTokenService.resendEmailVerification(userId, locale);
     res.sendStatus(204);
   }
 

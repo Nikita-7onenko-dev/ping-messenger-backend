@@ -10,6 +10,7 @@ import { mailService } from "@/mail/mail.service.js";
 import { idSchema } from "@/users/user.schema.js";
 import { tokenSchema } from "@/auth/auth.schema.js";
 import { rateLimiter } from "@/rate-limiter/rateLimiter.js";
+import type { Locale } from "@/users/settings/settings.types.js";
 
 class OneTimeTokenService {
   private generateOneTimeToken() {
@@ -24,7 +25,7 @@ class OneTimeTokenService {
     };
   }
 
-  async createEmailVerifyLink(userId: string, email: string) {
+  async createEmailVerifyLink(userId: string, email: string, locale: Locale) {
     const storedToken = await oneTimeTokenRepository.getTokenById(
       userId,
       "email_verification",
@@ -47,6 +48,7 @@ class OneTimeTokenService {
     await mailService.sendEmailVerification(
       email,
       `${process.env.ORIGIN}/auth/activate?userId=${userId}&token=${token}`,
+      locale,
     );
   }
 
@@ -93,7 +95,7 @@ class OneTimeTokenService {
     }
   }
 
-  async resendEmailVerification(userId: string) {
+  async resendEmailVerification(userId: string, locale: Locale) {
     const user = await userRepository.getById(userId);
     if (!user) throw ApiError.internal("Authenticated user not found");
 
@@ -110,6 +112,7 @@ class OneTimeTokenService {
     await mailService.sendEmailVerification(
       user.email,
       `${process.env.ORIGIN}/auth/activate?userId=${userId}&token=${token}`,
+      locale,
     );
   }
 }
