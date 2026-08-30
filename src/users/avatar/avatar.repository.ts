@@ -67,12 +67,39 @@ class AvatarRepository {
     }
   }
 
+  async getUnconfirmed() {
+    try {
+      const result = await pool.query<{ avatarId: string }>(
+        `SELECT id AS "avatarId"
+        FROM user_avatars
+        WHERE confirmed = FALSE
+          AND created_at < NOW() - INTERVAL '30 minutes'`,
+      );
+
+      return result.rows;
+    } catch (err) {
+      throw translateDBError(err, "user_avatars");
+    }
+  }
+
   async delete(userId: string, avatarId: string) {
     try {
       await pool.query(
         `DELETE FROM user_avatars
           WHERE user_id = $1 AND id = $2`,
         [userId, avatarId],
+      );
+    } catch (err) {
+      throw translateDBError(err, "user_avatars");
+    }
+  }
+
+  async schedulerDelete(avatarId: string) {
+    try {
+      await pool.query(
+        `DELETE FROM user_avatars
+          WHERE id = $2`,
+        [avatarId],
       );
     } catch (err) {
       throw translateDBError(err, "user_avatars");

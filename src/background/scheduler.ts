@@ -3,6 +3,7 @@ import { hardDeleteUsersJob } from "./jobs/hard-delete-users.job.js";
 import { deleteExpiredSessionsJob } from "./jobs/delete-expired-sessions.job.js";
 import { deleteExpiredTokensJob } from "./jobs/delete-expired-token.job.js";
 import { cleanupRateLimiterJob } from "./jobs/cleanup-rate-limiter.job.js";
+import { deleteOrphanedAvatars } from "./jobs/delete-orphaned-avatars.job.js";
 
 const CRON_TIMEZONE = "Europe/Kyiv";
 
@@ -26,6 +27,12 @@ cron.schedule("0 3 * * *", deleteExpiredTokensJob, {
 
 cron.schedule("0 3 * * *", cleanupRateLimiterJob, {
   name: "cleanup-rate-limiter",
+  timezone: CRON_TIMEZONE,
+  noOverlap: true,
+});
+
+cron.schedule("0 3 * * *", deleteOrphanedAvatars, {
+  name: "delete-orphaned-avatars",
   timezone: CRON_TIMEZONE,
   noOverlap: true,
 });
