@@ -9,7 +9,6 @@ import type {
   UpdateUserInput,
   User,
 } from "./user.types.js";
-import type { PoolClient } from "pg";
 
 const updateUserAllowedFields = new Set<keyof UpdateUserInput>([
   "name",
@@ -186,60 +185,6 @@ class UserRepository {
     }
   }
 
-  async activateUserById(client: PoolClient, id: string) {
-    try {
-      const result = await client.query(
-        `UPDATE users
-          SET is_activated = true
-          WHERE id = $1`,
-        [id],
-      );
-      return result.rowCount === 1;
-    } catch (err) {
-      throw translateDBError(err, "user");
-    }
-  }
-
-  async setCurrentAvatar(userId: string, avatarId: string | null) {
-    try {
-      const result = await pool.query(
-        `UPDATE users AS u
-       SET current_avatar_id = $2
-       WHERE u.id = $1
-         AND (
-           $2 IS NULL
-           OR EXISTS (
-             SELECT 1
-             FROM user_avatars AS ua
-             WHERE ua.id = $2
-               AND ua.user_id = $1
-           )
-         )`,
-        [userId, avatarId],
-      );
-      return result.rowCount === 1;
-    } catch (err) {
-      throw translateDBError(err, "users");
-    }
-  }
-
-  async getAvatarsOfDeletedUsers() {
-    try {
-      const result = await pool.query<{ userId: string; avatarId: string }>(
-        `SELECT
-          ua.user_id AS "userId",
-          ua.id AS "avatarId"
-        FROM user_avatars AS ua
-        JOIN users AS u
-          ON u.id = ua.user_id
-        WHERE u.is_deleted = TRUE;`,
-      );
-      return result.rows;
-    } catch (err) {
-      throw translateDBError(err, "user");
-    }
-  }
-
   async deleteById(userId: string) {
     const client = await pool.connect();
     let resource = "user";
@@ -320,21 +265,6 @@ class UserRepository {
       return result.rowCount;
     } catch (err) {
       throw translateDBError(err, "users");
-    }
-  }
-
-  async isEmailVerified(userId: string) {
-    try {
-      const result = await pool.query<{ isActivated: boolean }>(
-        `SELECT is_activated AS "isActivated"
-          FROM users 
-          WHERE id = $1`,
-        [userId],
-      );
-      const [status] = result.rows;
-      return status?.isActivated;
-    } catch (err) {
-      throw translateDBError(err, "user");
     }
   }
 }

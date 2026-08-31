@@ -3,6 +3,7 @@ import { userController } from "./user.controller.js";
 import { authenticationMiddleware } from "@/middleware/authentication.middleware.js";
 import { emailVerificationMiddleware } from "@/middleware/email-verification.middleware.js";
 import { avatarController } from "./avatar/avatar.controller.js";
+import { sessionController } from "./session/session.controller.js";
 
 const userRouter = Router();
 
@@ -31,19 +32,19 @@ userRouter.get(
   "/me/sessions",
   authenticationMiddleware,
   emailVerificationMiddleware,
-  userController.getMySessions,
+  sessionController.getMySessions,
 );
 userRouter.delete(
   "/me/sessions",
   authenticationMiddleware,
   emailVerificationMiddleware,
-  userController.endAllSessionsExceptCurrent,
+  sessionController.endAllSessionsExceptCurrent,
 );
 userRouter.delete(
   "/me/sessions/:sessionId",
   authenticationMiddleware,
   emailVerificationMiddleware,
-  userController.endSessionById,
+  sessionController.endSessionById,
 );
 
 // Avatar
@@ -53,21 +54,18 @@ userRouter.post(
   emailVerificationMiddleware,
   avatarController.upload,
 );
-
 userRouter.get(
   "/me/avatars",
   authenticationMiddleware,
   emailVerificationMiddleware,
-  userController.getMyGallery,
+  avatarController.getMyGallery,
 );
-
 userRouter.patch(
   "/me/current-avatar",
   authenticationMiddleware,
   emailVerificationMiddleware,
-  userController.setCurrentAvatar,
+  avatarController.setCurrentAvatar,
 );
-
 userRouter.delete(
   "/me/avatars/:avatarId",
   authenticationMiddleware,
@@ -75,14 +73,14 @@ userRouter.delete(
   avatarController.delete,
 );
 
+// Public
 userRouter.get(
   "/:username/avatars",
   authenticationMiddleware,
   emailVerificationMiddleware,
-  userController.getPublicGallery,
+  avatarController.getPublicGallery,
 );
 
-// Public
 userRouter.get("/:username", userController.getByUsername);
 
 export { userRouter };

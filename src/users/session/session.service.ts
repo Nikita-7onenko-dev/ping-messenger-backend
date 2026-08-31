@@ -4,7 +4,6 @@ import { geoService } from "@/geo/geo.service.js";
 import { ApiError } from "@/exceptions/ApiError.js";
 import type { Tokens } from "@/token/token.types.js";
 import { isExpired } from "@/common/time/isExpired.js";
-import type { Session } from "./session.types.js";
 
 class SessionService {
   async create(

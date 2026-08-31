@@ -1,7 +1,5 @@
 import type { Request, Response } from "express";
 import { userService } from "./user.service.js";
-import { sessionService } from "./session/session.service.js";
-import { avatarService } from "./avatar/avatar.service.js";
 import { requireStringParam } from "@/common/http/requireStringParam.js";
 
 class UserController {
@@ -11,15 +9,6 @@ class UserController {
 
     const user = await userService.getByUsername(validUsername);
     res.status(200).json(user);
-  }
-
-  async getPublicGallery(req: Request, res: Response) {
-    const { username } = req.params;
-    const validUsername = requireStringParam(username);
-
-    const user = await userService.getByUsername(validUsername);
-    const gallery = await avatarService.getGallery(user.id);
-    res.status(200).json(gallery);
   }
 
   async getMe(req: Request, res: Response) {
@@ -38,40 +27,6 @@ class UserController {
     const id = req.userId!; // checked in middleware
 
     await userService.deleteMe(id);
-    res.sendStatus(204);
-  }
-
-  async setCurrentAvatar(req: Request, res: Response) {
-    const userId = req.userId!; // checked in middleware
-    await userService.setCurrentAvatar(userId, req.body);
-    res.sendStatus(204);
-  }
-
-  async getMyGallery(req: Request, res: Response) {
-    const userId = req.userId!; // checked in middleware
-    const gallery = await avatarService.getGallery(userId);
-    res.status(200).json(gallery);
-  }
-
-  async getMySessions(req: Request, res: Response) {
-    const id = req.userId!; // checked in middleware
-    const sessionId = req.sessionId!; // check in middleware
-
-    const sessions = await sessionService.getAll(id, sessionId);
-    res.status(200).json(sessions);
-  }
-
-  async endAllSessionsExceptCurrent(req: Request, res: Response) {
-    const { userId, sessionId } = req; // checked in middleware
-    await sessionService.endAllExceptCurrent(sessionId!, userId!);
-    res.sendStatus(204);
-  }
-
-  async endSessionById(req: Request, res: Response) {
-    const userId = req.userId!; // checked in middleware
-    const sessionId = req.sessionId!; // checked in middleware
-
-    await sessionService.endById(sessionId, userId);
     res.sendStatus(204);
   }
 }

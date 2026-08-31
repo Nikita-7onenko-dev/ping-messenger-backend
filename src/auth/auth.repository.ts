@@ -1,6 +1,7 @@
 import { pool } from "@/database/database.config.js";
 import { translateDBError } from "@/database/errors/translateDBError.js";
 import { ApiError } from "@/exceptions/ApiError.js";
+import type { PoolClient } from "pg";
 
 class AuthRepository {
   async findByIdentifier(identifier: string) {
@@ -34,6 +35,35 @@ class AuthRepository {
       return { ...user, ...credential };
     } catch (err) {
       throw translateDBError(err, resource);
+    }
+  }
+
+  async activateUserById(client: PoolClient, id: string) {
+    try {
+      const result = await client.query(
+        `UPDATE users
+          SET is_activated = true
+          WHERE id = $1`,
+        [id],
+      );
+      return result.rowCount === 1;
+    } catch (err) {
+      throw translateDBError(err, "user");
+    }
+  }
+
+  async isEmailVerified(userId: string) {
+    try {
+      const result = await pool.query<{ isActivated: boolean }>(
+        `SELECT is_activated AS "isActivated"
+          FROM users 
+          WHERE id = $1`,
+        [userId],
+      );
+      const [status] = result.rows;
+      return status?.isActivated;
+    } catch (err) {
+      throw translateDBError(err, "user");
     }
   }
 }

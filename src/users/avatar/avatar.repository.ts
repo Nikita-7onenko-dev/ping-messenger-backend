@@ -34,6 +34,29 @@ class AvatarRepository {
     }
   }
 
+  async setCurrentAvatar(userId: string, avatarId: string | null) {
+    try {
+      const result = await pool.query(
+        `UPDATE users AS u
+       SET current_avatar_id = $2
+       WHERE u.id = $1
+         AND (
+           $2 IS NULL
+           OR EXISTS (
+             SELECT 1
+             FROM user_avatars AS ua
+             WHERE ua.id = $2
+               AND ua.user_id = $1
+           )
+         )`,
+        [userId, avatarId],
+      );
+      return result.rowCount === 1;
+    } catch (err) {
+      throw translateDBError(err, "users");
+    }
+  }
+
   async getGallery(userId: string) {
     try {
       const result = await pool.query<AvatarFromGallery>(
@@ -67,6 +90,18 @@ class AvatarRepository {
     }
   }
 
+  async delete(userId: string, avatarId: string) {
+    try {
+      await pool.query(
+        `DELETE FROM user_avatars
+          WHERE user_id = $1 AND id = $2`,
+        [userId, avatarId],
+      );
+    } catch (err) {
+      throw translateDBError(err, "user_avatars");
+    }
+  }
+
   async getUnconfirmed() {
     try {
       const result = await pool.query<{ avatarId: string }>(
@@ -82,15 +117,20 @@ class AvatarRepository {
     }
   }
 
-  async delete(userId: string, avatarId: string) {
+  async getAvatarsOfDeletedUsers() {
     try {
-      await pool.query(
-        `DELETE FROM user_avatars
-          WHERE user_id = $1 AND id = $2`,
-        [userId, avatarId],
+      const result = await pool.query<{ userId: string; avatarId: string }>(
+        `SELECT
+          ua.user_id AS "userId",
+          ua.id AS "avatarId"
+        FROM user_avatars AS ua
+        JOIN users AS u
+          ON u.id = ua.user_id
+        WHERE u.is_deleted = TRUE;`,
       );
+      return result.rows;
     } catch (err) {
-      throw translateDBError(err, "user_avatars");
+      throw translateDBError(err, "user");
     }
   }
 

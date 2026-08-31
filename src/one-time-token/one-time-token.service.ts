@@ -11,6 +11,7 @@ import { idSchema } from "@/users/user.schema.js";
 import { tokenSchema } from "@/auth/auth.schema.js";
 import { rateLimiter } from "@/rate-limiter/rateLimiter.js";
 import type { Locale } from "@/users/settings/settings.types.js";
+import { authRepository } from "@/auth/auth.repository.js";
 
 class OneTimeTokenService {
   private generateOneTimeToken() {
@@ -72,7 +73,7 @@ class OneTimeTokenService {
         throw ApiError.forbidden("INVALID_CREDENTIALS");
       }
 
-      const isSuccess = await userRepository.activateUserById(
+      const isSuccess = await authRepository.activateUserById(
         client,
         verifiedUserId,
       );

@@ -1,6 +1,9 @@
 import cloudinary from "@/config/cloudinary.js";
 import { avatarRepository } from "./avatar.repository.js";
-import { avatarTransformationsSchema } from "./avatar.schema.js";
+import {
+  avatarTransformationsSchema,
+  currentAvatarSchema,
+} from "./avatar.schema.js";
 import { validateCloudinaryWebhook } from "@/webhook/webhook.schema.js";
 import { buildAvatarUrl } from "./build-avatar.js";
 import { ApiError } from "@/exceptions/ApiError.js";
@@ -33,6 +36,12 @@ class AvatarService {
       api_key: process.env.CLOUDINARY_API_KEY!,
       asset_folder: "Ping/avatars",
     };
+  }
+
+  async setCurrentAvatar(userId: string, reqBody: unknown) {
+    const { avatarId } = currentAvatarSchema.parse(reqBody);
+    const isSuccess = await avatarRepository.setCurrentAvatar(userId, avatarId);
+    if (!isSuccess) throw ApiError.notFound();
   }
 
   async completeUpload(reqBody: unknown) {

@@ -1,9 +1,8 @@
 import { avatarDestroy } from "@/users/avatar/avatar.destroy.js";
 import { avatarRepository } from "@/users/avatar/avatar.repository.js";
-import { userRepository } from "@/users/user.repository.js";
 
 export async function cleanupDeletedUserAvatars() {
-  const deletedUserAvatars = await userRepository.getAvatarsOfDeletedUsers();
+  const deletedUserAvatars = await avatarRepository.getAvatarsOfDeletedUsers();
   let avatarsDeleted = 0;
   let errorsCount = 0;
   for (const { userId, avatarId } of deletedUserAvatars) {
