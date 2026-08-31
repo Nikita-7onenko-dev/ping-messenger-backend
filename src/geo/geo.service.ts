@@ -5,22 +5,27 @@ class GeoService {
   async getGeoLocation(ip: string | null) {
     if (!ip) return { country: null, city: null };
 
-    const cachedLocation = await geoRepository.getCachedLocation(ip);
-    if (cachedLocation) return cachedLocation;
+    try {
+      const cachedLocation = await geoRepository.getCachedLocation(ip);
+      if (cachedLocation) return cachedLocation;
 
-    const location = await getGeoLocation(ip);
-    if (!location || !location.country_name)
+      const location = await getGeoLocation(ip);
+      if (!location || !location.country_name)
+        return { country: null, city: null };
+
+      const { city, country_name: country } = location;
+
+      await geoRepository.cacheLocation({
+        ipAddress: ip,
+        city,
+        country,
+      });
+
+      return { city, country };
+    } catch (err) {
+      console.error(err);
       return { country: null, city: null };
-
-    const { city, country_name: country } = location;
-
-    await geoRepository.cacheLocation({
-      ipAddress: ip,
-      city,
-      country,
-    });
-
-    return { city, country };
+    }
   }
 }
 

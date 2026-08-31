@@ -6,7 +6,7 @@ import { setAccessTokenHeader } from "@/common/http/setAccessTokenHeader.js";
 import { sessionService } from "@/users/session/session.service.js";
 import { resolveLocale } from "@/common/http/resolveLocale.js";
 import { oneTimeTokenService } from "@/one-time-token/one-time-token.service.js";
-import { tokenSchema } from "./auth.schema.js";
+import { validateToken } from "./auth.schema.js";
 
 class AuthController {
   async register(req: Request, res: Response) {
@@ -43,7 +43,7 @@ class AuthController {
     const { password, identifier } = req.body;
     const ipAddress = getClientIp(req);
     const userAgent = req.get("User-Agent") || null;
-
+    console.log(password, identifier);
     const { refreshToken, accessToken } = await authService.login({
       identifier,
       password,
@@ -59,7 +59,7 @@ class AuthController {
   async refresh(req: Request, res: Response) {
     const { refreshToken } = req.cookies;
 
-    const validRefreshToken = tokenSchema.parse(refreshToken);
+    const validRefreshToken = validateToken(refreshToken);
     const tokens = await sessionService.refreshAccessToken(validRefreshToken);
     setAccessTokenHeader(res, tokens.accessToken);
     res.sendStatus(204);

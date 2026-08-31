@@ -2,11 +2,6 @@ import type { NextFunction, Request, Response } from "express";
 import { ApiError } from "@/exceptions/ApiError.js";
 import { z, ZodError } from "zod";
 
-// const errorMap: Record<number, string> = {
-//   500: "INTERNAL_SERVER_ERROR",
-//   503: "SERVICE_UNAVAILABLE",
-// };
-
 export function errorMiddleware(
   error: unknown,
   req: Request,

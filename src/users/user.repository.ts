@@ -111,7 +111,7 @@ class UserRepository {
               (id = u.current_avatar_id) DESC,
               created_at DESC
             LIMIT 1
-          ) AS ua ON true
+          ) AS ua ON NOT u.is_deleted
           WHERE u.username = $1;`,
         [username],
       );

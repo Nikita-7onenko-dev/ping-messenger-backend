@@ -4,6 +4,7 @@ import { authenticationMiddleware } from "@/middleware/authentication.middleware
 import { emailVerificationMiddleware } from "@/middleware/email-verification.middleware.js";
 import { avatarController } from "./avatar/avatar.controller.js";
 import { sessionController } from "./session/session.controller.js";
+import { contactsController } from "./contacts/contacts.controller.js";
 
 const userRouter = Router();
 
@@ -71,6 +72,28 @@ userRouter.delete(
   authenticationMiddleware,
   emailVerificationMiddleware,
   avatarController.delete,
+);
+
+// Contacts
+userRouter.get(
+  "/me/contacts",
+  authenticationMiddleware,
+  emailVerificationMiddleware,
+  contactsController.getContacts,
+);
+
+userRouter.post(
+  "/me/contacts/:contactId",
+  authenticationMiddleware,
+  emailVerificationMiddleware,
+  contactsController.addContact,
+);
+
+userRouter.delete(
+  "/me/contacts/:contactId",
+  authenticationMiddleware,
+  emailVerificationMiddleware,
+  contactsController.deleteContact,
 );
 
 // Public

@@ -8,7 +8,7 @@ import { isExpired } from "@/common/time/isExpired.js";
 import { isStillFresh } from "@/common/time/isStillFresh.js";
 import { mailService } from "@/mail/mail.service.js";
 import { idSchema } from "@/users/user.schema.js";
-import { tokenSchema } from "@/auth/auth.schema.js";
+import { validateToken } from "@/auth/auth.schema.js";
 import { rateLimiter } from "@/rate-limiter/rateLimiter.js";
 import type { Locale } from "@/users/settings/settings.types.js";
 import { authRepository } from "@/auth/auth.repository.js";
@@ -55,7 +55,7 @@ class OneTimeTokenService {
 
   async activateEmail(userId: unknown, receivedToken: unknown) {
     const verifiedUserId = idSchema.parse(userId);
-    const verifiedReceivedToken = tokenSchema.parse(receivedToken);
+    const verifiedReceivedToken = validateToken(receivedToken);
     const client = await pool.connect();
     try {
       await client.query("BEGIN");

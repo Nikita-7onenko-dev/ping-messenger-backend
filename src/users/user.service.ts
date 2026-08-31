@@ -15,12 +15,12 @@ class UserService {
       id: user.id,
       name: user.name,
       username: user.username,
-      avatar: {
-        id: user.avatarId,
-        url: user.avatarId
-          ? buildAvatarUrl(user.avatarId, user.transformations, "cropped")
-          : null,
-      },
+      avatar: user.avatarId
+        ? {
+            id: user.avatarId,
+            url: buildAvatarUrl(user.avatarId, user.transformations, "cropped"),
+          }
+        : null,
     };
   }
 
@@ -38,12 +38,16 @@ class UserService {
         name: user.name,
         username: user.username,
         email: user.email,
-        avatar: {
-          id: user.avatarId,
-          url: user.avatarId
-            ? buildAvatarUrl(user.avatarId, user.transformations, "profile")
-            : null,
-        },
+        avatar: user.avatarId
+          ? {
+              id: user.avatarId,
+              url: buildAvatarUrl(
+                user.avatarId,
+                user.transformations,
+                "profile",
+              ),
+            }
+          : null,
       },
       settings,
     };
