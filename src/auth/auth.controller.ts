@@ -68,6 +68,7 @@ class AuthController {
     const sessionId = req.sessionId!; // checked in middleware
     const userId = req.userId!; // checked in middleware
     await sessionService.endById(sessionId, userId);
+    res.sendStatus(204);
   }
 }
 

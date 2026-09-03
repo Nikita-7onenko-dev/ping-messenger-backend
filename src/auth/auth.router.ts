@@ -10,7 +10,7 @@ authRouter.post("/register", authController.register);
 authRouter.post("/login", authController.login);
 authRouter.get("/activate", authController.activate);
 authRouter.post(
-  "activate/resend",
+  "/activate/resend",
   authenticationMiddleware,
   rateLimiterMiddleware(3),
   authController.activationResend,

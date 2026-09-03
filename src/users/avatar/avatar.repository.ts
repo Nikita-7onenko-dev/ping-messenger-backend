@@ -38,10 +38,10 @@ class AvatarRepository {
     try {
       const result = await pool.query(
         `UPDATE users AS u
-       SET current_avatar_id = $2
-       WHERE u.id = $1
+          SET current_avatar_id = $2::uuid
+          WHERE u.id = $1::uuid
          AND (
-           $2 IS NULL
+           $2::uuid IS NULL
            OR EXISTS (
              SELECT 1
              FROM user_avatars AS ua
