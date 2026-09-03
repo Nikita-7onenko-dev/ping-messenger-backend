@@ -3,9 +3,11 @@ import { ApiError } from "@/exceptions/ApiError.js";
 import { updateUserSchema } from "./user.schema.js";
 import { userSettingsRepository } from "./settings/settings.repository.js";
 import { buildAvatarUrl } from "./avatar/build-avatar.js";
+import type { PublicUser, User } from "./user.types.js";
+import type { UserSettings } from "./settings/settings.types.js";
 
 class UserService {
-  async getByUsername(username: string) {
+  async getByUsername(username: string): Promise<PublicUser> {
     const user = await userRepository.getByUsername(username);
     if (!user) {
       throw ApiError.notFound("USER_NOT_FOUND");
@@ -15,6 +17,7 @@ class UserService {
       id: user.id,
       name: user.name,
       username: user.username,
+      lastOnlineAt: user.lastOnlineAt,
       avatar: user.avatarId
         ? {
             id: user.avatarId,
@@ -24,7 +27,7 @@ class UserService {
     };
   }
 
-  async getMe(id: string) {
+  async getMe(id: string): Promise<{ user: User; settings: UserSettings }> {
     const user = await userRepository.getById(id);
     if (!user) throw ApiError.internal("Authenticated user not found");
     const settings = await userSettingsRepository.getSettings(id);

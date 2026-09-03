@@ -1,7 +1,7 @@
 import { translateDBError } from "@/database/errors/translateDBError.js";
 import type {
   CreateSessionInput,
-  Session,
+  SessionRow,
   SessionMetadata,
 } from "./session.types.js";
 import { pool } from "@/database/database.config.js";
@@ -60,7 +60,7 @@ class SessionRepository {
 
   async getAll(userId: string) {
     try {
-      const result = await pool.query<Session>(
+      const result = await pool.query<SessionRow>(
         `SELECT 
           id, 
           last_online_at AS "lastOnlineAt", 

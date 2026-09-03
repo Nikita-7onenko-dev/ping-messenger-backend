@@ -1,5 +1,3 @@
-import type { Tokens } from "@/token/token.types.js";
-
 export type CreateSessionInput = {
   userId: string;
   refreshTokenHash: string;
@@ -10,14 +8,16 @@ export type CreateSessionInput = {
   city: string | null;
 };
 
-export type Session = {
-  id: string;
-  lastOnlineAt: Date;
-} & SessionMetadata;
-
 export type SessionMetadata = {
   ipAddress: string | null;
   userAgent: string | null;
   country: string | null;
   city: string | null;
 };
+
+export type SessionRow = {
+  id: string;
+  lastOnlineAt: Date;
+} & SessionMetadata;
+
+export type Session = SessionRow & { isCurrent: boolean };

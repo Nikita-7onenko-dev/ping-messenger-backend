@@ -1,13 +1,12 @@
 import type { Request, Response } from "express";
 import { userService } from "./user.service.js";
-import { requireStringParam } from "@/common/http/requireStringParam.js";
+import { usernameSchema } from "./user.schema.js";
 
 class UserController {
   async getByUsername(req: Request, res: Response) {
-    const { username } = req.params;
-    const validUsername = requireStringParam(username);
+    const username = usernameSchema.parse(req.params.username);
 
-    const user = await userService.getByUsername(validUsername);
+    const user = await userService.getByUsername(username);
     res.status(200).json(user);
   }
 

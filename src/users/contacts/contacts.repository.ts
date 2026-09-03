@@ -1,11 +1,11 @@
 import { pool } from "@/database/database.config.js";
 import { translateDBError } from "@/database/errors/translateDBError.js";
-import type { Contact } from "./contacts.types.js";
+import type { ContactRow } from "./contacts.types.js";
 
 class ContactsRepository {
   async getContacts(userId: string) {
     try {
-      const result = await pool.query<Contact>(
+      const result = await pool.query<ContactRow>(
         `SELECT 
           uc.contact_id as "userId",
           u.name,
@@ -42,7 +42,7 @@ class ContactsRepository {
 
       return result.rows;
     } catch (err) {
-      translateDBError(err, "user_contacts");
+      throw translateDBError(err, "user_contacts");
     }
   }
 

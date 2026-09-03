@@ -6,7 +6,7 @@ import { handleNotNullViolation } from "./handlers/handleNotNullViolation.js";
 import { logDBError } from "./logDBError.js";
 
 export function translateDBError(err: unknown, resource: string) {
-  if (!(err instanceof DatabaseError)) throw err;
+  if (!(err instanceof DatabaseError)) return err;
 
   switch (err.code) {
     case "23505":

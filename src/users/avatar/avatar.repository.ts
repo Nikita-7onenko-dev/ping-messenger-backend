@@ -1,7 +1,7 @@
 import { translateDBError } from "@/database/errors/translateDBError.js";
 import { pool } from "@/database/database.config.js";
 import { ApiError } from "@/exceptions/ApiError.js";
-import type { AvatarFromGallery } from "./avatar.types.js";
+import type { GalleryItem } from "./avatar.types.js";
 
 class AvatarRepository {
   async preload(userId: string, transformations: string) {
@@ -59,11 +59,22 @@ class AvatarRepository {
 
   async getGallery(userId: string) {
     try {
-      const result = await pool.query<AvatarFromGallery>(
+      const result = await pool.query<GalleryItem>(
         `SELECT
-          ua.id AS "avatarId",
+          ua.id,
           ua.transformations,
-          (ua.id = u.current_avatar_id) AS "isCurrent"
+          (
+            ua.id = COALESCE (
+              u.current_avatar_id,
+              (
+                SELECT id
+                FROM user_avatars
+                WHERE user_id = u.id
+                ORDER BY created_at DESC
+                LIMIT 1
+              )
+            )
+          ) AS "isCurrent"
         FROM user_avatars AS ua
         JOIN users AS u
           ON u.id = ua.user_id

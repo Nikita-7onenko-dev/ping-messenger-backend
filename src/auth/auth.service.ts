@@ -9,7 +9,6 @@ import { sessionService } from "@/users/session/session.service.js";
 import { identifierSchema } from "./auth.schema.js";
 import type { LoginInput } from "./auth.types.js";
 import { oneTimeTokenService } from "@/one-time-token/one-time-token.service.js";
-import { userSettingsService } from "@/users/settings/settings.service.js";
 import type { Locale } from "@/users/settings/settings.types.js";
 import type { Tokens } from "@/token/token.types.js";
 

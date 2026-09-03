@@ -2,17 +2,18 @@ import { ApiError } from "@/exceptions/ApiError.js";
 import { contactsRepository } from "./contacts.repository.js";
 import { idSchema } from "../user.schema.js";
 import { buildAvatarUrl } from "../avatar/build-avatar.js";
+import type { Contact } from "./contacts.types.js";
 
 class ContactsService {
-  async getContacts(userId: string) {
+  async getContacts(userId: string): Promise<Contact[]> {
     const contacts = await contactsRepository.getContacts(userId);
-    return contacts?.map((contact) => ({
+    return contacts.map((contact) => ({
       userId: contact.userId,
       name: contact.name,
       lastOnlineAt: contact.lastOnlineAt,
       avatar: contact.avatarId
         ? {
-            avatarId: contact.avatarId,
+            id: contact.avatarId,
             url: buildAvatarUrl(
               contact.avatarId,
               contact.transformations,

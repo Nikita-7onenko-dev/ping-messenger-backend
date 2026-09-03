@@ -7,9 +7,23 @@ export type AvatarTransformations = {
 
 export type AvatarVariant = "cropped" | "profile" | "thumbnail";
 
-export type Avatar = {
-  avatarId: string;
+export type AvatarRow =
+  | {
+      avatarId: string;
+      transformations: AvatarTransformations;
+    }
+  | {
+      avatarId: null;
+      transformations: null;
+    };
+
+export type GalleryItem = {
+  id: string;
   transformations: AvatarTransformations;
+  isCurrent: boolean;
 };
 
-export type AvatarFromGallery = Avatar & { isCurrent: boolean };
+export type Avatar = {
+  id: string;
+  url: string;
+} | null;

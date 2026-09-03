@@ -4,10 +4,10 @@ import { ApiError } from "@/exceptions/ApiError.js";
 
 import type {
   CreateUserInput,
-  PublicUser,
-  CreateUserResult,
+  PublicUserRow,
+  CreateUserResultRow,
   UpdateUserInput,
-  User,
+  UserRow,
 } from "./user.types.js";
 
 const updateUserAllowedFields = new Set<keyof UpdateUserInput>([
@@ -17,7 +17,7 @@ const updateUserAllowedFields = new Set<keyof UpdateUserInput>([
 ]);
 
 class UserRepository {
-  async create(userInput: CreateUserInput): Promise<CreateUserResult> {
+  async create(userInput: CreateUserInput): Promise<CreateUserResultRow> {
     const client = await pool.connect();
     let resource = "user";
     try {
@@ -98,9 +98,10 @@ class UserRepository {
 
   async getByUsername(username: string) {
     try {
-      const result = await pool.query<PublicUser>(
-        `SELECT u.id, u.name, u.username, ua.id AS "avatarId", ua.transformations
+      const result = await pool.query<PublicUserRow>(
+        `SELECT u.id, u.name, u.username, ua.id AS "avatarId", ua.transformations, us.last_online_at AS "lastOnlineAt"
           FROM users AS u
+
           LEFT JOIN LATERAL (
             SELECT
               id,
@@ -111,8 +112,18 @@ class UserRepository {
               (id = u.current_avatar_id) DESC,
               created_at DESC
             LIMIT 1
-          ) AS ua ON NOT u.is_deleted
-          WHERE u.username = $1;`,
+          ) AS ua ON TRUE
+
+        LEFT JOIN LATERAL (
+          SELECT last_online_at 
+          FROM user_sessions
+          WHERE user_id = u.id
+          ORDER BY last_online_at DESC
+          LIMIT 1
+        ) AS us ON TRUE
+
+          WHERE u.username = $1
+          AND NOT u.is_deleted;`,
         [username],
       );
       const [user] = result.rows;
@@ -124,7 +135,7 @@ class UserRepository {
 
   async getById(id: string) {
     try {
-      const result = await pool.query<User>(
+      const result = await pool.query<UserRow>(
         `SELECT
           u.id,
           u.name,

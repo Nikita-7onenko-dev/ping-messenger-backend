@@ -43,7 +43,6 @@ class AuthController {
     const { password, identifier } = req.body;
     const ipAddress = getClientIp(req);
     const userAgent = req.get("User-Agent") || null;
-    console.log(password, identifier);
     const { refreshToken, accessToken } = await authService.login({
       identifier,
       password,

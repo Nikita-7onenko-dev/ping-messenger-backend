@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { avatarService } from "./avatar.service.js";
-import { requireStringParam } from "@/common/http/requireStringParam.js";
 import { userService } from "../user.service.js";
+import { idSchema, usernameSchema } from "../user.schema.js";
 
 class AvatarController {
   async upload(req: Request, res: Response) {
@@ -17,10 +17,9 @@ class AvatarController {
   }
 
   async getPublicGallery(req: Request, res: Response) {
-    const { username } = req.params;
-    const validUsername = requireStringParam(username);
+    const username = usernameSchema.parse(req.params.username);
 
-    const user = await userService.getByUsername(validUsername);
+    const user = await userService.getByUsername(username);
     const gallery = await avatarService.getGallery(user.id);
     res.status(200).json(gallery);
   }
@@ -33,8 +32,7 @@ class AvatarController {
 
   async delete(req: Request, res: Response) {
     const userId = req.userId!; // checked in middleware
-    const { avatarId } = req.params;
-    const validAvatarId = requireStringParam(avatarId);
+    const validAvatarId = idSchema.parse(req.params.avatarId);
 
     await avatarService.delete(userId, validAvatarId);
     res.sendStatus(204);

@@ -55,8 +55,8 @@ class AvatarService {
   async getGallery(userId: string) {
     const gallery = await avatarRepository.getGallery(userId);
     return gallery.map((avatar) => ({
-      id: avatar.avatarId,
-      url: buildAvatarUrl(avatar.avatarId, avatar.transformations, "cropped"),
+      id: avatar.id,
+      url: buildAvatarUrl(avatar.id, avatar.transformations, "cropped"),
       isCurrent: avatar.isCurrent,
     }));
   }
