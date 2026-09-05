@@ -72,7 +72,6 @@ class ConversationsRepository {
           m.user_id AS "senderId",
           m.content,
           m.created_at AS "createdAt",
-          m.delivered_at AS "deliveredAt",
           m.read_at AS "readAt",
           
           uc.count::int AS "unreadCount"

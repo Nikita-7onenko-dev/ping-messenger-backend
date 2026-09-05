@@ -1,9 +1,7 @@
 import type { PrivateConversationRow } from "./conversations.types.js";
-import type { MessageRow } from "./messages/messages.types.js";
+import type { Message } from "./messages/messages.types.js";
 
-export function buildLastMessage(
-  row: PrivateConversationRow,
-): MessageRow | null {
+export function buildLastMessage(row: PrivateConversationRow): Message | null {
   if (!row.messageId) {
     return null;
   }
@@ -18,7 +16,6 @@ export function buildLastMessage(
     userId: row.senderId,
     content: row.content,
     createdAt: row.createdAt,
-    deliveredAt: row.deliveredAt,
     readAt: row.readAt,
   };
 }
