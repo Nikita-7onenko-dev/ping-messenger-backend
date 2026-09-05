@@ -40,9 +40,9 @@ class SessionService {
   async refreshAccessToken(refreshToken: string): Promise<Tokens> {
     const hashFromClient = tokenService.hashRefreshToken(refreshToken);
     const session =
-      await sessionRepository.getByRefreshTokenHash(hashFromClient);
+      await sessionRepository.getActiveByRefreshTokenHash(hashFromClient);
 
-    if (!session || isExpired(session.expiresAt)) {
+    if (!session) {
       throw ApiError.unauthorized();
     }
 

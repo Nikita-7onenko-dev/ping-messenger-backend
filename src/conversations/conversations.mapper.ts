@@ -1,7 +1,9 @@
 import type { PrivateConversationRow } from "./conversations.types.js";
-import type { Message } from "./messages/messages.types.js";
+import type { MessageRow } from "./messages/messages.types.js";
 
-export function buildLastMessage(row: PrivateConversationRow): Message | null {
+export function buildLastMessage(
+  row: PrivateConversationRow,
+): MessageRow | null {
   if (!row.messageId) {
     return null;
   }

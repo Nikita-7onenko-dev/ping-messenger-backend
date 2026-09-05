@@ -1,4 +1,3 @@
-import { idSchema } from "@/users/user.schema.js";
 import type { Request, Response } from "express";
 import { conversationsService } from "./conversations.service.js";
 

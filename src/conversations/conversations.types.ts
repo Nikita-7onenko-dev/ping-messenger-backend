@@ -1,4 +1,4 @@
-import type { Message } from "./messages/messages.types.js";
+import type { MessageRow } from "./messages/messages.types.js";
 import type { Avatar, AvatarRow } from "@/users/avatar/avatar.types.js";
 
 // DB projections
@@ -23,7 +23,7 @@ export type PrivateConversation = {
     name: string;
     avatar: Avatar;
   };
-  lastMessage: Message | null;
+  lastMessage: MessageRow | null;
   unreadCount: number;
 };
 

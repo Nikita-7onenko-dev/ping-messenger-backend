@@ -38,17 +38,16 @@ class SessionRepository {
     }
   }
 
-  async getByRefreshTokenHash(refreshTokenHash: string) {
+  async getActiveByRefreshTokenHash(refreshTokenHash: string) {
     try {
       const result = await pool.query<{
         id: string;
         userId: string;
-        expiresAt: Date;
       }>(
-        `SELECT id, user_id AS "userId", expires_at AS "expiresAt"
+        `SELECT id, user_id AS "userId"
           FROM user_sessions
           WHERE refresh_token_hash = $1
-        `,
+            AND expires_at > NOW();`,
         [refreshTokenHash],
       );
       const [session] = result.rows;
