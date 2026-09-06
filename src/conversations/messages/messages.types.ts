@@ -16,6 +16,11 @@ export type CreateMessageInput = {
 
 export type CreateMessagePayload = PrivateMessagePayload | GroupMessagePayload;
 
+export type MessageCursor = {
+  createdAt: Date;
+  id: string;
+};
+
 export type Message = {
   id: string;
   conversationId: string;

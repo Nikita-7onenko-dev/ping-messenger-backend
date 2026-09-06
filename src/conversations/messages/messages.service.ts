@@ -1,15 +1,18 @@
 import { pool } from "@/database/database.config.js";
 import type {
   GroupMessagePayload,
+  Message,
   PrivateMessagePayload,
 } from "./messages.types.js";
 import { ApiError } from "@/exceptions/ApiError.js";
 import { conversationsRepository } from "../conversations.repository.js";
 import { messagesRepository } from "./messages.repository.js";
+import { socketService } from "@/web-socket/web-socket.service.js";
 
 class MessagesService {
   async sendPrivateMessage(userId: string, payload: PrivateMessagePayload) {
     const client = await pool.connect();
+    let message: Message;
     try {
       await client.query("BEGIN");
 
@@ -30,7 +33,7 @@ class MessagesService {
         payload.participantId,
       );
 
-      await messagesRepository.sendMessage(client, {
+      message = await messagesRepository.sendMessage(client, {
         content: payload.content,
         conversationId: conversation.id,
         userId,
@@ -43,6 +46,13 @@ class MessagesService {
     } finally {
       client.release();
     }
+    socketService.sendToUser(
+      payload.participantId,
+      JSON.stringify({
+        type: "message.created",
+        payload: message,
+      }),
+    );
   }
 
   async sendGroupMessage(userId: string, input: GroupMessagePayload) {}

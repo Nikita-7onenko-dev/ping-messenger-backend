@@ -9,4 +9,9 @@ conversationsRouter.use(authenticationMiddleware, emailVerificationMiddleware);
 
 conversationsRouter.get("/", conversationsController.getConversations);
 
+conversationsRouter.get(
+  "/:conversationId/messages",
+  conversationsController.getHistory,
+);
+
 export { conversationsRouter };

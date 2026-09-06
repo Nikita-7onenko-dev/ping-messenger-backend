@@ -4,6 +4,12 @@ import z from "zod";
 
 const contentSchema = z.string().min(1, zodError("REQUIRED"));
 
+export const cursorQuerySchema = z.string().optional();
+export const cursorSchema = z.object({
+  createdAt: z.date(),
+  id: idSchema,
+});
+
 export const createMessageSchema = z.union([
   z.object({
     participantId: idSchema,
