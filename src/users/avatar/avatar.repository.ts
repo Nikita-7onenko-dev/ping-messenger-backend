@@ -20,7 +20,7 @@ class AvatarRepository {
     }
   }
 
-  async completeUpload(avatarId: string) {
+  async confirmUpload(avatarId: string) {
     try {
       const result = await pool.query(
         `UPDATE user_avatars

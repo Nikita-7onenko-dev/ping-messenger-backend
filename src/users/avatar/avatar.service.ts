@@ -44,9 +44,9 @@ class AvatarService {
     if (!isSuccess) throw ApiError.notFound();
   }
 
-  async completeUpload(reqBody: unknown) {
+  async confirmUpload(reqBody: unknown) {
     const avatarId = validateCloudinaryWebhook(reqBody);
-    const isSuccess = await avatarRepository.completeUpload(avatarId);
+    const isSuccess = await avatarRepository.confirmUpload(avatarId);
     if (!isSuccess) {
       console.error(`Avatar not found for Cloudinary webhook: ${avatarId}`);
     }

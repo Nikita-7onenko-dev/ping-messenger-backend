@@ -5,9 +5,9 @@ import { verifyCloudinaryWebhook } from "@/middleware/verify-cloudinary-webhook.
 const webhookRouter = Router();
 
 webhookRouter.post(
-  "/cloudinary",
+  "/cloudinary/confirm",
   verifyCloudinaryWebhook,
-  webhookController.handleUpload,
+  webhookController.confirmUpload,
 );
 
 export { webhookRouter };

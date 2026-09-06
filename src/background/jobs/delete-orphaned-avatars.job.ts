@@ -11,6 +11,8 @@ export async function deleteOrphanedAvatars() {
         resource_type: "image",
         type: "upload",
       });
+
+      await avatarRepository.confirmUpload(avatarId);
     } catch (err) {
       const httpCode =
         typeof err === "object" &&
