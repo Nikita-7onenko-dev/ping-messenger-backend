@@ -7,7 +7,7 @@ import type {
 import { ApiError } from "@/exceptions/ApiError.js";
 import { conversationsRepository } from "../conversations.repository.js";
 import { messagesRepository } from "./messages.repository.js";
-import { socketService } from "@/web-socket/web-socket.service.js";
+import { webSocketService } from "@/websocket/websocket.service.js";
 
 class MessagesService {
   async sendPrivateMessage(userId: string, payload: PrivateMessagePayload) {
@@ -46,7 +46,7 @@ class MessagesService {
     } finally {
       client.release();
     }
-    socketService.sendToUser(
+    webSocketService.sendToUser(
       payload.participantId,
       JSON.stringify({
         type: "message.created",

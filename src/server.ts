@@ -1,7 +1,7 @@
 import http from "node:http";
 import { pool } from "./database/database.config.js";
 import { app } from "./app.js";
-import { setupWebSocketServer } from "./web-socket/web-socket.server.js";
+import { setupWebSocketServer } from "./websocket/websocket.server.js";
 
 const PORT = process.env.PORT || 5000;
 

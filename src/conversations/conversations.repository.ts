@@ -56,6 +56,26 @@ class ConversationsRepository {
     }
   }
 
+  async getMembers(userId: string, conversationId: string) {
+    try {
+      const result = await pool.query<{ id: string }>(
+        `SELECT user_id AS "id"
+          FROM conversation_members
+          WHERE user_id <> $1 
+          AND conversation_id = $2
+           AND EXISTS (
+              SELECT 1 FROM conversation_members AS cm
+              WHERE cm.user_id = $1
+              AND cm.conversation_id = $2
+            )`,
+        [userId, conversationId],
+      );
+      return result.rows;
+    } catch (err) {
+      throw translateDBError(err, "conversation_members");
+    }
+  }
+
   async getConversations(userId: string) {
     try {
       const result = await pool.query<PrivateConversationRow>(

@@ -4,6 +4,7 @@ import type {
   CreateMessageInput,
   Message,
   MessageCursor,
+  ReadAtPayload,
 } from "./messages.types.js";
 import { ApiError } from "@/exceptions/ApiError.js";
 import { pool } from "@/database/database.config.js";
@@ -86,20 +87,35 @@ class MessagesRepository {
     }
   }
 
-  // async updateDelivered(userId: string, conversationId: string, time: Date) {
-  //   try {
-  //     await pool.query(
-  //       `UPDATE messages AS m
-  //         SET delivered_at = NOW()
-  //         WHERE user_id = $1
-  //           conversation_id = $2
-  //         AND m.created_at < $3 AND m.delivered_at IS NULL`,
-  //       [userId, conversationId, time]
-  //     )
-  //   } catch (err) {
-  //     throw translateDBError(err, "messages");
-  //   }
-  // }
+  async markMessagesAsRead(userId: string, payload: ReadAtPayload[]) {
+    const params = [];
+    for (const { messageId, conversationId, readAt } of payload) {
+      params.push(messageId, conversationId, readAt);
+    }
+
+    const values = payload.map(
+      (_, i) => `($${2 + i * 3}, $${3 + i * 3}, $${4 + i * 3})`,
+    );
+
+    try {
+      await pool.query(
+        `UPDATE messages AS m
+          SET read_at = COALESCE(m.read_at, v.read_at)
+          FROM (VALUES 
+              ${values.join(", ")}
+          ) AS v(id, conversation_id, read_at)
+            WHERE m.id = v.id
+            AND EXISTS (
+              SELECT 1 FROM conversation_members AS cm
+              WHERE cm.user_id = $1
+              AND cm.conversation_id = v.conversation_id
+            )`,
+        [userId, ...params],
+      );
+    } catch (err) {
+      throw translateDBError(err, "messages");
+    }
+  }
 }
 
 const messagesRepository = new MessagesRepository();

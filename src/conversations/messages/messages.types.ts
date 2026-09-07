@@ -21,6 +21,12 @@ export type MessageCursor = {
   id: string;
 };
 
+export type ReadAtPayload = {
+  messageId: string;
+  conversationId: string;
+  readAt: string;
+};
+
 export type Message = {
   id: string;
   conversationId: string;
