@@ -1,7 +1,7 @@
 import { messagesRepository } from "@/conversations/messages/messages.repository.js";
 import type { ReadAtPayload } from "@/conversations/messages/messages.types.js";
 
-class WsStateBuffer {
+class StateBuffer {
   private messageReadAtState = new Map<string, ReadAtPayload[]>();
   accumulate(userId: string, payload: ReadAtPayload) {
     const readAtPayload = this.messageReadAtState.get(userId) ?? [];
@@ -27,5 +27,5 @@ class WsStateBuffer {
   }
 }
 
-const wsStateBuffer = new WsStateBuffer();
-export { wsStateBuffer };
+const stateBuffer = new StateBuffer();
+export { stateBuffer };

@@ -7,7 +7,7 @@ import type {
 import { ApiError } from "@/exceptions/ApiError.js";
 import { conversationsRepository } from "../conversations.repository.js";
 import { messagesRepository } from "./messages.repository.js";
-import { webSocketService } from "@/websocket/websocket.service.js";
+import { wsConnectionService } from "@/websocket/websocket.connection.service.js";
 
 class MessagesService {
   async sendPrivateMessage(userId: string, payload: PrivateMessagePayload) {
@@ -46,13 +46,10 @@ class MessagesService {
     } finally {
       client.release();
     }
-    webSocketService.sendToUser(
-      payload.participantId,
-      JSON.stringify({
-        type: "message.created",
-        payload: message,
-      }),
-    );
+    wsConnectionService.sendToUser(payload.participantId, {
+      type: "message.created",
+      payload: message,
+    });
   }
 
   async sendGroupMessage(userId: string, input: GroupMessagePayload) {}

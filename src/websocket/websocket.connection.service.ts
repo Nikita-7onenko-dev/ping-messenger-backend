@@ -1,5 +1,6 @@
 import { ApiError } from "@/exceptions/ApiError.js";
 import { WebSocket } from "ws";
+import type { OutgoingEventType } from "./websocket.outgoing-event.types.js";
 
 type Connection = {
   socket: WebSocket;
@@ -7,7 +8,7 @@ type Connection = {
   sessionId: string;
 };
 
-class WebSocketService {
+class WsConnectionService {
   private clients = new Map<string, Set<Connection>>();
   private userIds = new Map<WebSocket, string>();
 
@@ -28,18 +29,23 @@ class WebSocketService {
     console.log("WebSocket heartbeat started");
   }
 
+  updateAlive(socket: WebSocket) {
+    const { connection } = this.getConnectionContext(socket);
+    connection.isAlive = true;
+  }
+
   getConnectionContext(socket: WebSocket) {
     const userId = this.userIds.get(socket);
     if (!userId) {
       throw ApiError.internal("Socket is not registered");
     }
 
-    const sockets = this.clients.get(userId);
-    if (!sockets) {
+    const connections = this.clients.get(userId);
+    if (!connections) {
       throw ApiError.internal("User sockets are not registered");
     }
 
-    const connection = sockets
+    const connection = connections
       .values()
       .find((connection) => connection.socket === socket);
     if (!connection) {
@@ -47,14 +53,9 @@ class WebSocketService {
     }
     return {
       userId,
-      sockets,
+      connections,
       connection,
     };
-  }
-
-  updateAlive(socket: WebSocket) {
-    const { connection } = this.getConnectionContext(socket);
-    connection.isAlive = true;
   }
 
   connect(userId: string, sessionId: string, socket: WebSocket) {
@@ -64,37 +65,56 @@ class WebSocketService {
       sessionId,
     };
     const sockets = this.clients.get(userId) ?? new Set<Connection>();
+
     sockets.add(connection);
     this.clients.set(userId, sockets);
     this.userIds.set(socket, userId);
+
+    return {
+      becameOnline: sockets.size === 1,
+    };
   }
 
   disconnect(socket: WebSocket) {
-    const { sockets, connection, userId } = this.getConnectionContext(socket);
+    const { connections, connection, userId } =
+      this.getConnectionContext(socket);
 
-    sockets.delete(connection);
+    connections.delete(connection);
 
-    if (!sockets.size) {
+    if (!connections.size) {
       this.clients.delete(userId);
     }
 
     this.userIds.delete(socket);
 
     return {
-      sockets,
+      connections,
       connection,
       userId,
+      becameOffline: connections.size === 0,
     };
   }
 
-  sendToUser(userId: string, data: string) {
+  sendToUser(userId: string, payload: OutgoingEventType) {
+    const data = JSON.stringify(payload);
     const userConnections = this.clients.get(userId);
     if (!userConnections) return;
     userConnections.forEach((connection) => {
       connection.socket.send(data);
     });
   }
+
+  getPresenceSnapshot(subjectIds: string[]) {
+    return {
+      type: "presence.snapshot",
+      payload: {
+        subjects: subjectIds.map((subjectId) => ({
+          [subjectId]: this.clients.has(subjectId),
+        })),
+      },
+    };
+  }
 }
 
-const webSocketService = new WebSocketService();
-export { webSocketService };
+const wsConnectionService = new WsConnectionService();
+export { wsConnectionService };
