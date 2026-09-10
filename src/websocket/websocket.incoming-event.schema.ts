@@ -1,7 +1,7 @@
 import WebSocket from "ws";
 import z from "zod";
 
-const messageReadSchema = z.object({
+export const messageReadEventSchema = z.object({
   type: z.literal("message.read"),
   payload: z.object({
     messageId: z.uuid(),
@@ -10,7 +10,7 @@ const messageReadSchema = z.object({
   }),
 });
 
-const typingSchema = z.object({
+const typingEventSchema = z.object({
   type: z.union([z.literal("typing.start"), z.literal("typing.end")]),
   payload: z.object({
     conversationId: z.uuid(),
@@ -28,14 +28,14 @@ const presenceEventSchema = z.object({
   }),
 });
 
-const messageDataSchema = z.discriminatedUnion("type", [
-  messageReadSchema,
-  typingSchema,
+const incomingEventSchema = z.discriminatedUnion("type", [
+  messageReadEventSchema,
+  typingEventSchema,
   presenceEventSchema,
 ]);
 
 export function parseMessageData(data: WebSocket.RawData) {
   const parsed = JSON.parse(data.toString());
 
-  return messageDataSchema.parse(parsed);
+  return incomingEventSchema.parse(parsed);
 }
