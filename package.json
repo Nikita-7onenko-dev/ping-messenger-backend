@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch --env-file=.env src/server.ts",
-    "build": "tsc",
+    "build": "tsc && tsc-alias",
     "start": "node --env-file=.env dist/server.js",
     "test": "tsx test.ts"
   },
@@ -34,6 +34,7 @@
     "@types/node": "^26.2.0",
     "@types/pg": "^8.23.1",
     "@types/ws": "^8.18.1",
+    "tsc-alias": "^1.9.4",
     "tsx": "^4.23.12",
     "typescript": "^7.0.2"
   }

@@ -11,9 +11,12 @@ type Connection = {
 class WsConnectionService {
   private clients = new Map<string, Set<Connection>>();
   private userIds = new Map<WebSocket, string>();
+  private heartbeatTimerId: NodeJS.Timeout | null = null;
 
   startHeartbeat() {
-    setInterval(() => {
+    if (this.heartbeatTimerId) return;
+
+    this.heartbeatTimerId = setInterval(() => {
       this.clients.values().forEach((connections) => {
         connections.values().forEach((connection) => {
           if (!connection.isAlive) {
@@ -27,6 +30,19 @@ class WsConnectionService {
       });
     }, 30_000);
     console.log("WebSocket heartbeat started");
+  }
+
+  stopHeartbeat() {
+    if (!this.heartbeatTimerId) return;
+    clearInterval(this.heartbeatTimerId);
+  }
+
+  closeAll() {
+    for (const connections of this.clients.values()) {
+      for (const connection of connections) {
+        connection.socket.close();
+      }
+    }
   }
 
   updateAlive(socket: WebSocket) {

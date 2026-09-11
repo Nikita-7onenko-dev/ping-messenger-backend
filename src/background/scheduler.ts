@@ -8,40 +8,49 @@ import { cleanupDeletedUserAvatars } from "./jobs/cleanup-deleted-users-avatars.
 
 const CRON_TIMEZONE = "Europe/Kyiv";
 
-cron.schedule("0 3 * * *", hardDeleteUsersJob, {
-  name: "hard-delete-users",
-  timezone: CRON_TIMEZONE,
-  noOverlap: true,
-});
+const tasks = [
+  cron.schedule("0 3 * * *", hardDeleteUsersJob, {
+    name: "hard-delete-users",
+    timezone: CRON_TIMEZONE,
+    noOverlap: true,
+  }),
 
-cron.schedule("0 3 * * *", deleteExpiredSessionsJob, {
-  name: "delete-expired-sessions",
-  timezone: CRON_TIMEZONE,
-  noOverlap: true,
-});
+  cron.schedule("0 3 * * *", deleteExpiredSessionsJob, {
+    name: "delete-expired-sessions",
+    timezone: CRON_TIMEZONE,
+    noOverlap: true,
+  }),
 
-cron.schedule("0 3 * * *", deleteExpiredTokensJob, {
-  name: "delete-expired-tokens",
-  timezone: CRON_TIMEZONE,
-  noOverlap: true,
-});
+  cron.schedule("0 3 * * *", deleteExpiredTokensJob, {
+    name: "delete-expired-tokens",
+    timezone: CRON_TIMEZONE,
+    noOverlap: true,
+  }),
 
-cron.schedule("0 3 * * *", cleanupRateLimiterJob, {
-  name: "cleanup-rate-limiter",
-  timezone: CRON_TIMEZONE,
-  noOverlap: true,
-});
+  cron.schedule("0 3 * * *", cleanupRateLimiterJob, {
+    name: "cleanup-rate-limiter",
+    timezone: CRON_TIMEZONE,
+    noOverlap: true,
+  }),
 
-cron.schedule("0 3 * * *", deleteOrphanedAvatars, {
-  name: "delete-orphaned-avatars",
-  timezone: CRON_TIMEZONE,
-  noOverlap: true,
-});
+  cron.schedule("0 3 * * *", deleteOrphanedAvatars, {
+    name: "delete-orphaned-avatars",
+    timezone: CRON_TIMEZONE,
+    noOverlap: true,
+  }),
 
-cron.schedule("0 3 * * *", cleanupDeletedUserAvatars, {
-  name: "cleanup-deleted-users-avatars",
-  timezone: CRON_TIMEZONE,
-  noOverlap: true,
-});
+  cron.schedule("0 3 * * *", cleanupDeletedUserAvatars, {
+    name: "cleanup-deleted-users-avatars",
+    timezone: CRON_TIMEZONE,
+    noOverlap: true,
+  }),
+];
+
+export function stopScheduler() {
+  for (const task of tasks) {
+    task.stop();
+  }
+  console.log("[Scheduler] stopped");
+}
 
 console.log("[Scheduler] started");

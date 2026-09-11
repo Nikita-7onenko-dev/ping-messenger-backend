@@ -56,4 +56,6 @@ export function setupWebSocketServer() {
 
     socket.on("message", (data) => handleMessage(data, socket));
   });
+
+  return wss;
 }
