@@ -16,12 +16,12 @@ export async function handleMessage(
 
     switch (type) {
       case "message.read": {
-        stateBuffer.accumulate(userId, payload);
+        stateBuffer.accumulate({ ...payload, userId });
+
         const participants = await conversationsRepository.getMembers(
           userId,
           payload.conversationId,
         );
-
         const participant = participants[0];
 
         if (!participant) {

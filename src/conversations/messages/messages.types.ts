@@ -25,6 +25,7 @@ export type ReadAtPayload = {
   messageId: string;
   conversationId: string;
   readAt: string;
+  userId: string;
 };
 
 export type Message = {

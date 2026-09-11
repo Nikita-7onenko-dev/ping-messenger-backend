@@ -2,28 +2,40 @@ import { messagesRepository } from "@/conversations/messages/messages.repository
 import type { ReadAtPayload } from "@/conversations/messages/messages.types.js";
 
 class StateBuffer {
-  private messageReadAtState = new Map<string, ReadAtPayload[]>();
-  accumulate(userId: string, payload: ReadAtPayload) {
-    const readAtPayload = this.messageReadAtState.get(userId) ?? [];
-    readAtPayload.push(payload);
-    this.messageReadAtState.set(userId, readAtPayload);
+  private messageReadAtState: ReadAtPayload[] = [];
+  private isFlushing = false;
+
+  private async flushAll() {
+    const payload = [...this.messageReadAtState];
+    this.messageReadAtState = [];
+    if (!payload.length) return;
+
+    try {
+      console.log("flushing state");
+      await messagesRepository.markMessagesAsRead(payload);
+    } catch (err) {
+      console.error(`Failed to flush message read at state ${err}`);
+      this.messageReadAtState.push(...payload);
+    }
   }
 
-  async flush(userId: string) {
-    const payload = this.messageReadAtState.get(userId);
-    if (!payload) return;
+  startFlushHeartbeat() {
+    console.log("WS state-buffer heartbeat started");
 
-    for (let attempt = 1; attempt <= 3; attempt++) {
+    setInterval(async () => {
+      if (this.isFlushing) return;
+
+      this.isFlushing = true;
       try {
-        await messagesRepository.markMessagesAsRead(userId, payload);
-
-        this.messageReadAtState.delete(userId);
-        return;
-      } catch (err) {
-        if (attempt === 3)
-          console.error(`Failed to flush message read at state ${err}`);
+        await this.flushAll();
+      } finally {
+        this.isFlushing = false;
       }
-    }
+    }, 5_000);
+  }
+
+  accumulate(payload: ReadAtPayload) {
+    this.messageReadAtState.push(payload);
   }
 }
 

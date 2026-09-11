@@ -87,14 +87,14 @@ class MessagesRepository {
     }
   }
 
-  async markMessagesAsRead(userId: string, payload: ReadAtPayload[]) {
+  async markMessagesAsRead(payload: ReadAtPayload[]) {
     const params = [];
-    for (const { messageId, conversationId, readAt } of payload) {
-      params.push(messageId, conversationId, readAt);
+    for (const { userId, messageId, conversationId, readAt } of payload) {
+      params.push(userId, messageId, conversationId, readAt);
     }
 
     const values = payload.map(
-      (_, i) => `($${2 + i * 3}, $${3 + i * 3}, $${4 + i * 3})`,
+      (_, i) => `($${1 + i * 4}, $${2 + i * 4}, $${3 + i * 4}, $${4 + i * 4})`,
     );
 
     try {
@@ -103,14 +103,14 @@ class MessagesRepository {
           SET read_at = COALESCE(m.read_at, v.read_at)
           FROM (VALUES 
               ${values.join(", ")}
-          ) AS v(id, conversation_id, read_at)
+          ) AS v(user_id, id, conversation_id, read_at)
             WHERE m.id = v.id
             AND EXISTS (
               SELECT 1 FROM conversation_members AS cm
-              WHERE cm.user_id = $1
+              WHERE cm.user_id = v.user_id
               AND cm.conversation_id = v.conversation_id
             )`,
-        [userId, ...params],
+        params,
       );
     } catch (err) {
       throw translateDBError(err, "messages");

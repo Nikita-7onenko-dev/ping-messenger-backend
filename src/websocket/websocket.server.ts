@@ -8,6 +8,7 @@ import { handleClose } from "./handlers/close.handler.js";
 import { handlePong } from "./handlers/pong.handler.js";
 import { handleMessage } from "./handlers/message.handler.js";
 import { notifyUserPresenceStatus } from "./presence/notify-user-presence-status.js";
+import { stateBuffer } from "./websocket.state-buffer.js";
 
 export function setupWebSocketServer() {
   const wss = new WebSocketServer({
@@ -15,6 +16,7 @@ export function setupWebSocketServer() {
   });
 
   wsConnectionService.startHeartbeat();
+  stateBuffer.startFlushHeartbeat();
 
   server.on("upgrade", async (req, socket, head) => {
     const cookies = parse(req.headers.cookie || "");
