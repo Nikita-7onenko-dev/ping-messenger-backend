@@ -7,6 +7,10 @@ const messagesRouter = Router();
 
 messagesRouter.use(authenticationMiddleware, emailVerificationMiddleware);
 
-messagesRouter.post("/", messagesController.sendMessage);
+messagesRouter.post("/", messagesController.send);
+
+messagesRouter.patch("/:messageId", messagesController.update);
+
+messagesRouter.delete("/:messageId", messagesController.delete);
 
 export { messagesRouter };

@@ -2,9 +2,10 @@ import { translateDBError } from "@/database/errors/translateDBError.js";
 import type { PoolClient } from "pg";
 import type {
   CreateMessageInput,
-  Message,
+  MessageRow,
   MessageCursor,
   ReadAtPayload,
+  UpdateMessageInput,
 } from "./messages.types.js";
 import { ApiError } from "@/exceptions/ApiError.js";
 import { pool } from "@/database/database.config.js";
@@ -12,7 +13,7 @@ import { pool } from "@/database/database.config.js";
 class MessagesRepository {
   async sendMessage(client: PoolClient, input: CreateMessageInput) {
     try {
-      const result = await client.query<Message>(
+      const result = await client.query<MessageRow>(
         `INSERT INTO messages (
           conversation_id,
           user_id,
@@ -51,7 +52,8 @@ class MessagesRepository {
           user_id AS "userId", 
           content, 
           created_at AS "createdAt", 
-          read_at AS "readAt"
+          read_at AS "readAt",
+          updated_at AS "updatedAt"
         FROM messages
         WHERE conversation_id = $2
           AND EXISTS (
@@ -80,20 +82,20 @@ class MessagesRepository {
         ORDER BY created_at DESC, id DESC
         LIMIT 21`;
 
-      const result = await pool.query<Message>(query, params);
+      const result = await pool.query<MessageRow>(query, params);
       return result.rows;
     } catch (err) {
       throw translateDBError(err, "messages");
     }
   }
 
-  async markMessagesAsRead(payload: ReadAtPayload[]) {
+  async markMessagesAsRead(input: ReadAtPayload[]) {
     const params = [];
-    for (const { userId, messageId, conversationId, readAt } of payload) {
-      params.push(userId, messageId, conversationId, readAt);
+    for (const { userId, id, conversationId, readAt } of input) {
+      params.push(userId, id, conversationId, readAt);
     }
 
-    const values = payload.map(
+    const values = input.map(
       (_, i) => `($${1 + i * 4}, $${2 + i * 4}, $${3 + i * 4}, $${4 + i * 4})`,
     );
 
@@ -112,6 +114,78 @@ class MessagesRepository {
             )`,
         params,
       );
+    } catch (err) {
+      throw translateDBError(err, "messages");
+    }
+  }
+
+  async update(userId: string, input: UpdateMessageInput) {
+    try {
+      const result = await pool.query<
+        MessageRow & { participantIds: string[] }
+      >(
+        `UPDATE messages AS m
+          SET 
+            content = $3,
+            updated_at = CURRENT_TIMESTAMP
+          WHERE 
+            m.id = $2
+            AND m.user_id = $1
+            AND m.created_at >= CURRENT_TIMESTAMP - INTERVAL '72 hours'
+          RETURNING 
+            m.id, 
+            m.conversation_id "conversationId",
+            m.content, 
+            m.user_id AS "userId",
+            m.updated_at AS "updatedAt",
+            m.created_at AS "createdAt",
+            m.read_at AS "readAt",
+            ARRAY(
+              SELECT cm.user_id
+              FROM conversation_members AS cm
+              WHERE cm.conversation_id = m.conversation_id
+                AND cm.user_id <> m.user_id
+            ) AS "participantIds" `,
+
+        [userId, input.id, input.content],
+      );
+      const [row] = result.rows;
+
+      if (!row) return null;
+
+      const { participantIds, ...message } = row;
+      return {
+        participantIds,
+        message,
+      };
+    } catch (err) {
+      throw translateDBError(err, "messages");
+    }
+  }
+
+  async delete(userId: string, messageId: string) {
+    try {
+      const result = await pool.query<{
+        id: string;
+        conversationId: string;
+        participantIds: string[];
+      }>(
+        `DELETE FROM messages AS m
+        WHERE 
+          m.user_id = $1
+          AND m.id = $2
+        RETURNING
+          m.id,
+          m.conversation_id as "conversationId",
+          ARRAY (
+            SELECT FROM conversation_members AS cm
+            WHERE cm.conversation_id = m.conversation_id
+              AND cm.user_id <> m.user_id
+          ) AS "participantIds"`,
+        [userId, messageId],
+      );
+      const [row] = result.rows;
+      return row;
     } catch (err) {
       throw translateDBError(err, "messages");
     }

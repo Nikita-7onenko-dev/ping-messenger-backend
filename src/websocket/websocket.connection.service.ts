@@ -1,6 +1,6 @@
 import { ApiError } from "@/exceptions/ApiError.js";
 import { WebSocket } from "ws";
-import type { OutgoingEventType } from "./websocket.outgoing-event.types.js";
+import type { OutgoingEvent } from "./websocket.outgoing-event.types.js";
 
 type Connection = {
   socket: WebSocket;
@@ -111,7 +111,7 @@ class WsConnectionService {
     };
   }
 
-  sendToUser(userId: string, payload: OutgoingEventType) {
+  sendToUser(userId: string, payload: OutgoingEvent) {
     const data = JSON.stringify(payload);
     const userConnections = this.clients.get(userId);
     if (!userConnections) return;
@@ -122,7 +122,7 @@ class WsConnectionService {
 
   getPresenceSnapshot(subjectIds: string[]) {
     return {
-      type: "presence.snapshot",
+      type: "presence.snapshot" as const,
       payload: {
         subjects: subjectIds.map((subjectId) => ({
           [subjectId]: this.clients.has(subjectId),

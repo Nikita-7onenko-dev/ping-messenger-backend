@@ -93,6 +93,7 @@ class ConversationsRepository {
           m.content,
           m.created_at AS "createdAt",
           m.read_at AS "readAt",
+          m.updated_at AS "updatedAt",
           
           uc.count::int AS "unreadCount"
 

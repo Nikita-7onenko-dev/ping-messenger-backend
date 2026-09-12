@@ -1,6 +1,6 @@
 import { zodError } from "@/common/validation/zodError.js";
 import { idSchema } from "@/users/user.schema.js";
-import z from "zod";
+import z, { uuid } from "zod";
 
 const contentSchema = z.string().min(1, zodError("REQUIRED"));
 
@@ -21,3 +21,8 @@ export const createMessageSchema = z.union([
     content: contentSchema,
   }),
 ]);
+
+export const updateMessageSchema = z.object({
+  id: z.uuid(),
+  content: z.string().min(1),
+});

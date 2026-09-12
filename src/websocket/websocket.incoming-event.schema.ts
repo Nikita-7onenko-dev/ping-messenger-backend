@@ -4,7 +4,7 @@ import z from "zod";
 export const messageReadEventSchema = z.object({
   type: z.literal("message.read"),
   payload: z.object({
-    messageId: z.uuid(),
+    id: z.uuid(),
     conversationId: z.uuid(),
     readAt: z.iso.datetime(),
   }),
